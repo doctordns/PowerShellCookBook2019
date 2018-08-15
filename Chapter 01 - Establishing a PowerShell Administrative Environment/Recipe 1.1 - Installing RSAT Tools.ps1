@@ -1,4 +1,4 @@
-# Recipe 1-1 - Installing RSAT Tools
+# Recipe 1.1 - Installing RSAT Tools
 #
 # Uses: DC1, SRV1, CL1
 # Run From CL1

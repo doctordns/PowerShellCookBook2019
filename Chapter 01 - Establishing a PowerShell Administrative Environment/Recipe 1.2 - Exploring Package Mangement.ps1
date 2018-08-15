@@ -1,6 +1,6 @@
-﻿# Recipe 1-5 - Exploring PackageManagement
+﻿# Recipe 1.2 - Exploring Package Management
 #
-#
+# Run From SRV1 
 
 # 1. Review the cmdlets in the PackageManagement module:
 Get-Command -Module PackageManagement

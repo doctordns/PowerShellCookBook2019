@@ -1,6 +1,7 @@
-# Recipe 1-6 - Creating an Internal PowerShell repository
+# Recipe 1.5 - Creating an Internal PowerShell repository
 
-#  Step 1 through step 5 (creating a local repository) are done in your browser.
+#  Step 1 through step 5 are done in your browser.
+#  These steps talke you through the GUI steps to get the Inedo repo.
 
 # 6. Open the PowerShell ISE or console, and register your new repository:
 $RepositoryURL = `
@@ -11,6 +12,8 @@ Register-PSRepository -Name MyPowerShellPackages `
                       -InstallationPolicy Trusted
 
 # 7. Publish a module you already have installed (Pester for example):
+# CHANGE to publis a module added in 1.4
+
 Publish-Module -Name Pester -Repository MyPowerShellPackages `
                -NuGetApiKey "Admin:Admin" `
                -Force

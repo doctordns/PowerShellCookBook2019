@@ -1,5 +1,7 @@
-﻿# Recipe 1-4 - Exploring PowerShellGet
+﻿# Recipe 1.3 - Exploring PowerShellGet
 # This recipe looks at what you can get with the tools in the PowerShellGet module
+# Run on CL1, DC1, SRV1
+# Run as administrator
 
 # 1. Begin by reviewing the commands available in the PowerShellGet module:
 Get-Command -Module PowerShellGet
