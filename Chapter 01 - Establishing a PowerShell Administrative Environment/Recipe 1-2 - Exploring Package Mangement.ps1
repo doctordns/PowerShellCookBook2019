@@ -1,16 +1,21 @@
 ﻿# Recipe 1-5 - Exploring PackageManagement
+#
+#
 
 # 1. Review the cmdlets in the PackageManagement module:
 Get-Command -Module PackageManagement
 
 # 2. Review the installed providers with Get-PackageProvider:
-Get-PackageProvider | Select-Object -Property Name, Version
+Get-PackageProvider | 
+    Format-Table -Property Name, Version, SupportedFileExtensions,
+                           FromtrustedSource
 
 # 3. The provider list includes msi, msu, and Programs package providers. These
 #    providers expose applications and updates installed on your computer which
 #    you can explore:
 Get-Package -ProviderName msi |
-    Select-Object -ExpandProperty Name | sort name
+  Select-Object -ExpandProperty Name |gm
+      Sort-Object -Property Name
 Get-Package -ProviderName msu |
     Select-Object -ExpandProperty Name
 Get-Package -ProviderName Programs |
