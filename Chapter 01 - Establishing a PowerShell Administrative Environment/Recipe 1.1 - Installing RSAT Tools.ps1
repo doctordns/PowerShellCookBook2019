@@ -1,12 +1,14 @@
 # Recipe 1.1 - Installing RSAT Tools
 #
 # Uses: DC1, SRV1, CL1
+
 # Run From CL1
 
 # 1. Get all available PowerShell commands prior to installing RSAT tools
 $CommandsBeforeRSAT        = Get-Command 
-$CountOfCommandsBeforeRSAT = $CommandsBeforeRSAT.count
-"Commands available on [$(hostname)] before RSAT installed: [$CountOfCommandsBeforeRSAT]"
+$CountBeforeRSAT = $CommandsBeforeRSAT.Count
+Write-Output "On Host: [$(hostname)]:"
+"Commands available before RSAT installed: [$CountBeforeRSAT]"
 
 # 2. Examine the types of objects returned by Get-Command:
 $CommandsBeforeRSAT | Get-Member |
