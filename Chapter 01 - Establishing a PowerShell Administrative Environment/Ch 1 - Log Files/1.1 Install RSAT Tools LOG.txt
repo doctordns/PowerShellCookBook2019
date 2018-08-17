@@ -1,0 +1,33 @@
+#  1.1 Install RSAT Tools - LOG
+
+# Run on CL1.Reskit.Org
+
+
+# 1. Get all available PowerShell commands prior to installing RSAT tools
+
+PS C:\foo> $CommandsBeforeRSAT = Get-Command 
+PS C:\foo> $CountBeforeRSAT    = $CommandsBeforeRSAT.Count
+PS C:\foo> Write-Output "On Host: [$(hostname)]"
+PS C:\foo> "Commands available before RSAT installed: [$CountBeforeRSAT]"
+
+On Host: [CL1]
+Commands available before RSAT installed: [1530]
+
+# 2. Get Types
+
+PS C:\foo> $CommandsBeforeRSAT | Get-Member |
+                Select-Object -ExpandProperty TypeName -Unique
+
+System.Management.Automation.AliasInfo
+System.Management.Automation.FunctionInfo
+System.Management.Automation.CmdletInfo
+
+
+# 3 View commands in Out-GridView
+$CommandsBeforeRSAT |
+  Select-Object -Property Name, Source, CommandType |
+    Sort-Object -Property Source, Name |
+      Out-GridView
+
+#  See output as png
+

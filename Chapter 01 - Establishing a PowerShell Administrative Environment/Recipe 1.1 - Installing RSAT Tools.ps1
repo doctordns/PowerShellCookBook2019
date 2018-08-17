@@ -4,10 +4,22 @@
 
 # Run From CL1
 
+
+#  Step 0
+#0.1  Set execution Policy
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+# 0.2 Create profile
+New-Item $profile -Force
+'# Profile file created by recipes'  | OUT-File $profile
+"Profile for [$($host.name)]"        | OUT-File $profile -Append
+''                                   | OUT-File $profile -Append
+'#  set location'                    | OUT-File $profile -Append
+Set-Location -Path C:\Foo            | OUT-File $profile -Append
+
 # 1. Get all available PowerShell commands prior to installing RSAT tools
-$CommandsBeforeRSAT        = Get-Command 
-$CountBeforeRSAT = $CommandsBeforeRSAT.Count
-Write-Output "On Host: [$(hostname)]:"
+$CommandsBeforeRSAT = Get-Command 
+$CountBeforeRSAT    = $CommandsBeforeRSAT.Count
+Write-Output "On Host: [$(hostname)]"
 "Commands available before RSAT installed: [$CountBeforeRSAT]"
 
 # 2. Examine the types of objects returned by Get-Command:
