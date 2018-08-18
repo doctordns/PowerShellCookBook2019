@@ -11,23 +11,228 @@ PS C:\foo> Write-Output "On Host: [$(hostname)]"
 PS C:\foo> "Commands available before RSAT installed: [$CountBeforeRSAT]"
 
 On Host: [CL1]
-Commands available before RSAT installed: [1530]
+Commands available before RSAT installed: [1528]
 
-# 2. Get Types
+# 2. Examine Types of commands
 
 PS C:\foo> $CommandsBeforeRSAT | Get-Member |
                 Select-Object -ExpandProperty TypeName -Unique
 
 System.Management.Automation.AliasInfo
 System.Management.Automation.FunctionInfo
+System.Management.Automation.FilterInfo
 System.Management.Automation.CmdletInfo
 
 
-# 3 View commands in Out-GridView
-$CommandsBeforeRSAT |
-  Select-Object -Property Name, Source, CommandType |
-    Sort-Object -Property Source, Name |
-      Out-GridView
+# 3 Get  collection of PowerShell modules
 
-#  See output as png
+PS C:\foo> $ModulesBeforeRSAT = Get-Module -ListAvailable 
+PS C:\foo> $CountOfModulesBeforeRSAT = $ModulesBeforeRSAT.count
+PS C:\foo> "$CountOfModulesBeforeRSAT modules are installed prior to adding RSAT"
+77 modules are installed prior to adding RSAT
+
+
+# 4. Get Windows client version and h/w platform
+
+PS C:\foo> $Key      = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+PS C:\foo> $CliVer   = (Get-ItemProperty -Path $Key).ReleaseId
+PS C:\foo> $Platform = $ENV:PROCESSOR_ARCHITECTURE
+PS C:\foo> "Windows Client Version : $CliVer"
+PS C:\foo> "Hardware Platform      : $Platform"
+Windows Client Version : 1803
+Hardware Platform      : AMD64
+
+
+#  5. Workout download Path
+
+PS C:\foo> "RSAT MSU file to be downloaded:"
+PS C:\foo> $DLPath
+
+RSAT MSU file to be downloaded:
+https://download.microsoft.com/download/1/D/8/1D8B5022-5477-4B9A-8104-6A71FF9D98AB/WindowsTH-RSAT_WS_1803-x64.msu
+
+
+# 6. Use BITS to download
+
+You see a message that installation has started, then NO further output
+
+# 7. Check authenticode signature
+
+PS C:\foo> $Authenticatefile = Get-AuthenticodeSignature $DLFile
+PS C:\foo> If ($Authenticatefile.status -NE "Valid")
+PS C:\foo>   {'File downloaded fails authenticode check'}
+PS C:\foo> Else
+PS C:\foo>   {'Downloaded file passes authenticode check'}
+Downloaded file passes authenticode check
+
+
+# 8.  Install the RSAT tools
+
+No output from this step - you can see wusa.exe running in a separate PWSH window
+
+
+# 9 See commands Now
+PS C:\foo> $CommandsAfterRSAT        = Get-Command -Module *
+PS C:\foo> $COHT1 = @{
+             ReferenceObject  = $CommandsBeforeRSAT
+             DifferenceObject = $CommandsAfterRSAT
+PS C:\foo> $DiffC = Compare-Object @COHT1
+PS C:\foo> "$($DiffC.count) Commands added with RSAT"
+
+1270 Commands added with RSAT
+
+# 10. CHeck how many modules are now available
+
+PS C:\foo> $DiffM = Compare-Object @COHT2
+PS C:\foo> "$($DiffM.count) Modules added with RSAT"
+PS C:\foo> "$CountOfModulesAfterRsat modules now available"
+
+26 Modules added with RSAT to CL1
+103 modules now available on CL1
+
+
+# 11 Display modules added
+PS C:\Foo> "$($DiffM.count) modules added With RSAT tools"
+PS C:\Foo> $DiffM | Format-Table InputObject -HideTableHeaders
+
+26 modules added With RSAT tools to CL1
+ActiveDirectory             
+BestPractices               
+ClusterAwareUpdating        
+DFSN                        
+DFSR                        
+DhcpServer                  
+DnsServer                   
+FailoverClusters            
+GroupPolicy                 
+HgsClient                   
+IpamServer                  
+IscsiTarget                 
+NetLldpAgent                
+NetworkController           
+NetworkControllerDiagnostics
+NetworkLoadBalancingClusters
+NFS                         
+RemoteAccess                
+RemoteDesktop               
+ServerManager               
+ServerManagerTasks          
+ShieldedVMDataFile          
+ShieldedVMTemplate          
+StorageQoS                  
+StorageReplica              
+UpdateServices              
+
+
+# 12 - Create script blocks for RSAT installation
+
+
+$InstallSB = {
+  Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
+}
+
+PS C:\Foo> Invoke-Command -ComputerName DC1, SRV2 -ScriptBlock $InstallSB
+
+PSComputerName : DC1
+RunspaceId     : b6729592-85dd-457a-b573-95b35c0a18d0
+Success        : True
+RestartNeeded  : Yes
+FeatureResult  : {BitLocker Drive Encryption, RAS Connection Manager Administration Kit (CMAK), Enhanced 
+                 Storage, Active Directory Certificate Services Tools...}
+ExitCode       : SuccessRestartRequired
+
+WARNING: You must restart this server to finish the installation process.
+PSComputerName : SRV2
+RunspaceId     : 750d5a9e-2af7-46c2-83f2-116b98b54c00
+Success        : True
+RestartNeeded  : Yes
+FeatureResult  : {BitLocker Drive Encryption, RAS Connection Manager Administration Kit (CMAK), Enhanced 
+                 Storage, Group Policy Management...}
+ExitCode       : SuccessRestartRequired
+
+WARNING: You must restart this server to finish the installation process.
+
+
+# 13 Compare DC2, SRV1 and SRV2 
+
+PS C:\Foo> "$($FeaturesDC1.count) RSAT features on DC1"
+PS C:\Foo> "$($FeaturesSRV1.count) RSAT features on SRV1"
+PS C:\Foo> "$($FeaturesSRV2.count) RSAT features on SRV2"
+
+96 RSAT features on DC1
+77 RSAT features on SRV1
+13 RSAT features on SRV2
+
+
+# 14 what was added?
+
+PS C:\Foo> diff $FeaturesSRV1 $FeaturesSRV2 | select -expand inputobject
+
+Display Name                                            Name                       Install State PSComputerName
+------------                                            ----                       ------------- --------------
+[X] Enhanced Storage                                    EnhancedStorage                Installed SRV1          
+[X] Group Policy Management                             GPMC                           Installed SRV1         
+[X] RAS Connection Manager Administration Kit (CMAK)    CMAK                           Installed SRV1          
+[X] Remote Server Administration Tools                  RSAT                           Installed SRV1          
+    [X] Feature Administration Tools                    RSAT-Feature-Tools             Installed SRV1          
+        [X] SMTP Server Tools                           RSAT-SMTP                      Installed SRV1         
+        [X] BitLocker Drive Encryption Administratio... RSAT-Feature-Tools-B...        Installed SRV1          
+            [X] BitLocker Drive Encryption Tools        RSAT-Feature-Tools-B...        Installed SRV1          
+            [X] BitLocker Recovery Password Viewer      RSAT-Feature-Tools-B...        Installed SRV1          
+        [X] BITS Server Extensions Tools                RSAT-Bits-Server               Installed SRV1          
+        [X] DataCenterBridging LLDP Tools               RSAT-DataCenterBridg...        Installed SRV1          
+        [X] Failover Clustering Tools                   RSAT-Clustering                Installed SRV1          
+            [X] Failover Cluster Management Tools       RSAT-Clustering-Mgmt           Installed SRV1          
+            [X] Failover Cluster Module for Windows ... RSAT-Clustering-Powe...        Installed SRV1          
+            [X] Failover Cluster Automation Server      RSAT-Clustering-Auto...        Installed SRV1          
+            [X] Failover Cluster Command Interface      RSAT-Clustering-CmdI...        Installed SRV1          
+        [X] Network Load Balancing Tools                RSAT-NLB                       Installed SRV1          
+        [X] Shielded VM Tools                           RSAT-Shielded-VM-Tools         Installed SRV1          
+        [X] SNMP Tools                                  RSAT-SNMP                      Installed SRV1          
+        [X] Storage Migration Service Tools             RSAT-SMS                       Installed SRV1          
+        [X] Storage Replica Module for Windows Power... RSAT-Storage-Replica           Installed SRV1          
+        [X] System Insights Module for Windows Power... RSAT-System-Insights           Installed SRV1          
+        [X] WINS Server Tools                           RSAT-WINS                      Installed SRV1          
+    [X] Role Administration Tools                       RSAT-Role-Tools                Installed SRV1          
+        [X] AD DS and AD LDS Tools                      RSAT-AD-Tools                  Installed SRV1          
+            [X] Active Directory module for Windows ... RSAT-AD-PowerShell             Installed SRV1          
+            [X] AD DS Tools                             RSAT-ADDS                      Installed SRV1          
+                [X] Active Directory Administrative ... RSAT-AD-AdminCenter            Installed SRV1          
+                [X] AD DS Snap-Ins and Command-Line ... RSAT-ADDS-Tools                Installed SRV1          
+            [X] AD LDS Snap-Ins and Command-Line Tools  RSAT-ADLDS                     Installed SRV1          
+        [X] Hyper-V Management Tools                    RSAT-Hyper-V-Tools             Installed SRV1          
+            [X] Hyper-V GUI Management Tools            Hyper-V-Tools                  Installed SRV1          
+            [X] Hyper-V Module for Windows PowerShell   Hyper-V-PowerShell             Installed SRV1          
+        [X] Remote Desktop Services Tools               RSAT-RDS-Tools                 Installed SRV1          
+            [X] Remote Desktop Gateway Tools            RSAT-RDS-Gateway               Installed SRV1          
+            [X] Remote Desktop Licensing Diagnoser T... RSAT-RDS-Licensing-D...        Installed SRV1          
+        [X] Windows Server Update Services Tools        UpdateServices-RSAT            Installed SRV1          
+            [X] API and PowerShell cmdlets              UpdateServices-API             Installed SRV1          
+            [X] User Interface Management Console       UpdateServices-UI              Installed SRV1          
+        [X] Active Directory Certificate Services Tools RSAT-ADCS                      Installed SRV1          
+            [X] Certification Authority Management T... RSAT-ADCS-Mgmt                 Installed SRV1          
+            [X] Online Responder Tools                  RSAT-Online-Responder          Installed SRV1          
+        [X] Active Directory Rights Management Servi... RSAT-ADRMS                     Installed SRV1          
+        [X] DHCP Server Tools                           RSAT-DHCP                      Installed SRV1          
+        [X] DNS Server Tools                            RSAT-DNS-Server                Installed SRV1          
+        [X] Fax Server Tools                            RSAT-Fax                       Installed SRV1          
+        [X] File Services Tools                         RSAT-File-Services             Installed SRV1          
+            [X] DFS Management Tools                    RSAT-DFS-Mgmt-Con              Installed SRV1          
+            [X] File Server Resource Manager Tools      RSAT-FSRM-Mgmt                 Installed SRV1          
+            [X] Services for Network File System Man... RSAT-NFS-Admin                 Installed SRV1          
+        [X] Network Controller Management Tools         RSAT-NetworkController         Installed SRV1          
+        [X] Network Policy and Access Services Tools    RSAT-NPAS                      Installed SRV1          
+        [X] Print and Document Services Tools           RSAT-Print-Services            Installed SRV1          
+        [X] Remote Access Management Tools              RSAT-RemoteAccess              Installed SRV1
+            [X] Remote Access GUI and Command-Line T... RSAT-RemoteAccess-Mgmt         Installed SRV1          
+            [X] Remote Access module for Windows Pow... RSAT-RemoteAccess-Po...        Installed SRV1          
+        [X] Volume Activation Tools                     RSAT-VA-Tools                  Installed SRV1          
+[X] System Data Archiver                                System-DataArchiver            Installed SRV1          
+[X] Windows Defender Antivirus                          Windows-Defender               Installed SRV1          
+[X] Windows PowerShell                                  PowerShellRoot                 Installed SRV1         
+    [X] Windows PowerShell 5.1                          PowerShell                     Installed SRV1          
+    [X] Windows PowerShell ISE                          PowerShell-ISE                 Installed SRV1          
+[X] WoW64 Support                                       WoW64-Support                  Installed SRV1          
+[X] XPS Viewer                                          XPS-Viewer                     Installed SRV1          
+
 

@@ -5,129 +5,135 @@
 # Run From CL1
 
 
-#  Step 0
+#  Step 0 - Setup CL1 for first time
 #0.1  Set execution Policy
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted
-# 0.2 Create profile
+# 0.2 Create Local Foo folder
+New-Item c:\foo -ItemType Directory -Force
+# 0.3 Create profile
 New-Item $profile -Force
 '# Profile file created by recipes'  | OUT-File $profile
-"Profile for [$($host.name)]"        | OUT-File $profile -Append
+"# Profile for [$($host.name)]"      | OUT-File $profile -Append
 ''                                   | OUT-File $profile -Append
-'#  set location'                    | OUT-File $profile -Append
-Set-Location -Path C:\Foo            | OUT-File $profile -Append
+'#  CD to C:\Foo'                    | OUT-File $profile -Append
+'Set-Location -Path C:\Foo'          | OUT-File $profile -Append
+Notepad $Profile
+# 0.4 Update Help
+Update-Help -Force
 
-# 1. Get all available PowerShell commands prior to installing RSAT tools
-$CommandsBeforeRSAT = Get-Command 
+# 1. Get all available PowerShell commands
+$CommandsBeforeRSAT = Get-Command -Module *
 $CountBeforeRSAT    = $CommandsBeforeRSAT.Count
 Write-Output "On Host: [$(hostname)]"
 "Commands available before RSAT installed: [$CountBeforeRSAT]"
 
-# 2. Examine the types of objects returned by Get-Command:
+# 2. Examine the types of commands returned by Get-Command
 $CommandsBeforeRSAT | Get-Member |
     Select-Object -ExpandProperty TypeName -Unique
 
-# 3. View commands in Out-GridView:
-$CommandsBeforeRSAT |
-  Select-Object -Property Name, Source, CommandType |
-    Sort-Object -Property Source, Name |
-      Out-GridView
 
-# 4. Store the collection of PowerShell modules and a count into variables as well:
+# 3. Get the collection of PowerShell modules and a count of 
+#    modules beore adding the RSAT tools
 $ModulesBeforeRSAT = Get-Module -ListAvailable 
 $CountOfModulesBeforeRSAT = $ModulesBeforeRSAT.count
 "$CountOfModulesBeforeRSAT modules are installed prior to adding RSAT"
 
-# 5. View modules in Out-GridView:
-$ModulesBeforeRSAT |
-   Select-Object -Property Name,Description -Unique |
-     Sort-Object -Property Name|
-       Out-GridView
+# 4. Get Windows Client Version and Hardware platform
+$Key      = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+$CliVer   = (Get-ItemProperty -Path $Key).ReleaseId
+$Platform = $ENV:PROCESSOR_ARCHITECTURE
+"Windows Client Version : $CliVer"
+"Hardware Platform      : $Platform"
 
-# 6. Review the RSAT Windows Features available and their installation status:
-Get-WindowsFeature -Name RSAT*
 
-# 7. Perform information gathering on DC1, SRV1
-$SB = {
-    "On Host: [$(hostname)]:"
-    $CommandsBefore = Get-Command 
-    $CountBefore = $CommandsBefore.count
-    "  Commands available before RSAT installed: [$CountBefore]"
-    $ModulesBeforeRSAT = Get-Module -ListAvailable 
-    $CountOfModulesBeforeRSAT = $ModulesBeforeRSAT.count
-    "  $CountOfModulesBeforeRSAT modules are installed prior to adding RSAT"
-}
-Invoke-Command -ComputerName DC1 -ScriptBlock $SB
-"On DC1:"
-"On SRV1"
-
-#8. Get Windows Client Version and platform
-$CliVer = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
-$Platfm = $ENV:PROCESSOR_ARCHITECTURE
-
-# 9. Create URL for download file
+# 5. Create URL for download file
+#    NB: only works with 1709 and 1803.
 $LP1 = 'https://download.microsoft.com/download/1/D/8/1D8B5022-5477-4B9A-8104-6A71FF9D98AB/'
 $Lp180364 = 'WindowsTH-RSAT_WS_1803-x64.msu'
 $Lp170964 = 'WindowsTH-RSAT_WS_1709-x64.msu'
 $Lp180332 = 'WindowsTH-RSAT_WS_1803-x86.msu'
 $Lp170932 = 'WindowsTH-RSAT_WS_1709-x86.msu'
-If     ($CliVer -eq 1803 -and $Platfm -eq 'AMD64') {$DLPath = $Lp1 + $lp180364}
-ELSEIf ($CliVer -eq 1709 -and $Platfm -eq 'AMD64') {$DLPath = $Lp1 + $lp170964}
-ElseIf ($CliVer -eq 1803 -and $Platfm -eq 'X86')   {$DLPath = $Lp1 + $lp180332}
-ElseIf ($CliVer -eq 1709 -and $platfm -eq 'x86')   {$DLPath = $Lp1 + $lp170932}
-Else {Write-Output "Version $cliver - unknown"; return}
-Write-Host "Downloading RSAT MSU file [$DLPath]" 
+If     ($CliVer -eq 1803 -and $Platform -eq 'AMD64') {$DLPath = $Lp1 + $lp180364}
+ELSEIf ($CliVer -eq 1709 -and $Platform -eq 'AMD64') {$DLPath = $Lp1 + $lp170964}
+ElseIf ($CliVer -eq 1803 -and $Platform -eq 'X86')   {$DLPath = $Lp1 + $lp180332}
+ElseIf ($CliVer -eq 1709 -and $platform -eq 'x86')   {$DLPath = $Lp1 + $lp170932}
+Else {"Version $cliver - unknown"; return}
+"RSAT MSU file to be downloaded:"
+$DLPath
 
-# 10. Download the file
+# 6. Use BITs to download the file
 $DLFile = 'C:\foo\Rsat.msu'
 Start-BitsTransfer -Source $DLPath -Destination $DLFile
 
-# 11. Check authenticode signature
+# 7. Check authenticode signature
 $Authenticatefile = Get-AuthenticodeSignature $DLFile
 If ($Authenticatefile.status -NE "Valid")
-{ Write-Output 'File downloaded fails authenitcode check'}
+  {'File downloaded fails authenticode check'}
+Else
+  {'Downloaded file passes authenticode check'}
 
-# 12. Run the RSAT tools
+# 8. Install the RSAT tools
 $WusaArguments = $DLFile + " /quiet"
-Write-host "Installing RSAT for Windows 10 - please wait" -foregroundcolor yellow
+"Installing RSAT for Windows 10 - please wait"
 Start-Process -FilePath "C:\Windows\System32\wusa.exe" -ArgumentList $WusaArguments -Wait
 
-# 13. Examine RSAT Tools on CL1
-Add-WindowsCapability -Online -Name RSAT* | Sort-Object -Property FeatureName
-    Format-Table 
+# 9. Now that RSAT features are installed, see what commands are available on the client:
+$CommandsAfterRSAT        = Get-Command -Module *
+$COHT1 = @{
+  ReferenceObject  = $CommandsBeforeRSAT
+  DifferenceObject = $CommandsAfterRSAT
+}
+# NB: This is quite slow
+$DiffC = Compare-Object @COHT1
+"$($DiffC.count) Commands added with RSAT"
 
-# 14. Add them all
-$Features = Get-WindowsCapability -online -Name RSAT* 
-Write-Output "$($Features.count) RSAT Features"
-$Features = Add-WindowsCapability -OnLine
-
-# 15. Now that RSAT features are installed, see what commands are available on the client:
-$CommandsAfterRSAT        = Get-Command 
-$CountOfCommandsAfterRSAT = $CommandsBeforeRSAT.count
-Write-Output "$CountofCommandsAfterRsat commands"
-
-# 16. View commands in Out-GridView:
-$CommandsAfterRSAT |
-   Select-Object -Property Name, Source, CommandType |
-     Sort-Object -Property Source, Name |
-       Out-GridView
   
-# 17. Now check how many modules are available:
+# 10. Check how many modules are now available:
 $ModulesAfterRSAT        = Get-Module -ListAvailable 
 $CountOfModulesAfterRsat = $ModulesAfterRSAT.count
-Write-OUtout "$CountOfModulesAfterRsat modules"
-
-# 18. View modules in Out-GridView:
-$ModulesAfterRSAT | Select-Object -Property Name -Unique |
-   Sort-Object -Property Name |
-     Out-GridView
-
-# 19. Install RSAT with sub features and management tools on DC1 and SRV1
-$SB = {
-  Get-WindowsFeature -Name *RSAT* |
-    Install-WindowsFeature
+$COHT2 = @{
+  ReferenceObject  = $ModulesBeforeRSAT
+  DifferenceObject = $ModulesAfterRSAT
 }
-$Computers = @('DC1', 'SRV1')
-Invoke-Command -Scriptblock $SB -ComputerName $Computers                -Credential $CredRK
+$DiffM = Compare-Object @COHT2
+"$($DiffM.count) Modules added with RSAT to CL1"
+"$CountOfModulesAfterRsat modules now available on CL1"
 
+# 11. Display modules added to CL1
+"$($DiffM.count) modules added With RSAT tools to CL1"
+$DiffM | Format-Table InputObject -HideTableHeaders
 
+###  NOW Add RSAT to Server
 
+# 12. Just add the RSAT tools to Servers DC1, SRV1
+$InstallSB = {
+  Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
+}
+Invoke-Command -ComputerName DC1, SRV1 -ScriptBlock $InstallSB
+Restart-Computer -ComputerName DC1, SRV1 -Force
+
+# 13. Look at RSAT tools on SRV1 vs DC1, SRV2
+$SB = {
+  Get-WindowsFeature | Where-Object Installed 
+}
+$FeaturesSRV1 = Invoke-Command -ComputerName SRV1 -ScriptBlock $SB
+$FeaturesSRV2 = Invoke-Command -ComputerName SRV2 -ScriptBlock $SB
+$FeaturesDC1  = Invoke-Command -ComputerName DC1  -ScriptBlock $SB
+$RSATDC1 = $FeaturesDC1 | 
+  Where-Object Installed | 
+    Where-Object name -match 'RSAT'
+$RSATDC1 = $FeaturesSRV1 | 
+  Where-Object Installed | 
+    Where-Object name -match 'RSAT'
+$RSATDC1 = $FeaturesSRV2 | 
+  Where-Object Installed | 
+    Where-Object name -match 'RSAT'
+
+"$($FeaturesDC1.count) RSAT features on DC1"
+"$($FeaturesSRV1.count) RSAT features on SRV1"
+"$($FeaturesSRV2.count) RSAT features on SRV2"
+
+# Display features added to SRV1 that are not added to SRV2
+
+Compare-Object -ReferenceObject $FeaturesSRV1 -DifferenceObject $FeaturesSRV2 |
+ Select -Expand Inputobject
