@@ -1,0 +1,154 @@
+
+# 1.
+PS C:\foo> Get-Command -Module PackageManagement
+
+CommandType     Name                                               Version    Source                           
+-----------     ----                                               -------    ------                           
+Cmdlet          Find-Package                                       1.0.0.1    PackageManagement                
+Cmdlet          Find-PackageProvider                               1.0.0.1    PackageManagement                
+Cmdlet          Get-Package                                        1.0.0.1    PackageManagement                
+Cmdlet          Get-PackageProvider                                1.0.0.1    PackageManagement                
+Cmdlet          Get-PackageSource                                  1.0.0.1    PackageManagement                
+Cmdlet          Import-PackageProvider                             1.0.0.1    PackageManagement                
+Cmdlet          Install-Package                                    1.0.0.1    PackageManagement                
+Cmdlet          Install-PackageProvider                            1.0.0.1    PackageManagement                
+Cmdlet          Register-PackageSource                             1.0.0.1    PackageManagement                
+Cmdlet          Save-Package                                       1.0.0.1    PackageManagement                
+Cmdlet          Set-PackageSource                                  1.0.0.1    PackageManagement                
+Cmdlet          Uninstall-Package                                  1.0.0.1    PackageManagement                
+Cmdlet          Unregister-PackageSource                           1.0.0.1    PackageManagement                
+
+
+# 2.
+[srv1]: PS C:\Users\administrator\Documents> Get-PackageProvider | 
+    Format-Table -Property Name, Version, SupportedFileExtensions,
+                           FromtrustedSource
+
+Name          Version SupportedFileExtensions FromTrustedSource
+----          ------- ----------------------- -----------------
+msi           3.0.0.0 {msi, msp}                          False
+msu           3.0.0.0 {msu}                               False
+PowerShellGet 1.0.0.1 {}                                  False
+Programs      3.0.0.0 {}     
+
+
+#  3.  # Look at one provider
+[srv1]: PS C:\Users\administrator\Documents> Get-Package -ProviderName msu |
+    Select-Object -ExpandProperty Name
+
+Definition Update for Windows Defender Antivirus - KB2267602 (Definition 1.273.1555.0)
+Update for Windows Defender Antivirus antimalware platform - KB4052623 (Version 4.18.1807.18075)
+Definition Update for Windows Defender Antivirus - KB2267602 (Definition 1.273.1498.0)
+
+
+
+# 4. Getting Nuget
+[srv1]: PS C:\Users\administrator\Documents> Get-PackageProvider -Name NuGet -ForceBootstrap
+
+Name                     Version          DynamicOptions                                                       
+----                     -------          --------------                                                       
+NuGet                    2.8.5.208        Destination, ExcludeVersion, Scope, SkipDependencies, Headers, Fil...
+
+
+#  5. Other Package Providers
+srv1]: PS C:\Users\administrator\Documents> Find-PackageProvider |
+    Select-Object -Property Name,Summary |
+        Format-Table -Wrap -AutoSize
+
+Name                      Summary                                                                              
+----                      -------                                                                              
+nuget                     NuGet provider for the OneGet meta-package manager                                   
+psl                       psl provider for the OneGet meta-package manager                                     
+chocolatey                ChocolateyPrototype provider for the OneGet meta-package manager                     
+PowerShellGet             PowerShell module with commands for discovering, installing, updating and publishing 
+                          the PowerShell artifacts like Modules, DSC Resources, Role Capabilities and Scripts. 
+DockerMsftProvider        PowerShell module with commands for discovering, installing, and updating Docker     
+                          images.                                                                              
+ChocolateyGet             An PowerShell OneGet provider that discovers packages from                           
+                          https://www.chocolatey.org.                                                          
+NanoServerPackage         A PackageManagement provider to  Discover, Save and Install Nano Server Packages     
+                          on-demand                                                                            
+DockerProvider            PowerShell module with commands for discovering, installing, and updating Docker     
+                          images.                                                                              
+ContainerImage            This is a PackageManagement provider module which helps in discovering, downloading  
+                          and installing Windows Container OS images.                                          
+                                                                                                               
+                          For more details and examples refer to our project site at                           
+                          https://github.com/PowerShell/ContainerProvider.                                     
+DockerMsftProviderInsider PowerShell module with commands for discovering, installing, and updating Docker     
+                          images.                                                                              
+GitHubProvider            GitHub-as-a-Package - PackageManagement PowerShell Provider to interop with Github   
+GistProvider              Gist-as-a-Package - PackageManagement  PowerShell Provider to interop with Github    
+                          Gists                                                                                
+TSDProvider               PowerShell PackageManager provider to search & install TypeScript definition files   
+                          from the community DefinitelyTyped repo                                              
+GitLabProvider            GitLab PackageManagement provider                                                    
+OfficeProvider            OfficeProvider allows users to install Microsoft Office365 ProPlus from Powershell.  
+MyAlbum                   MyAlbum provider discovers the photos in your remote file repository and installs    
+                          them to your local folder.                                                           
+0install                  Zero Install is a decentralized cross-platform software-installation system.         
+WSAProvider               Provider to Discover, Install and inventory windows server apps                      
+AppxGet                   Powershell Package Management (OneGet) Provider for AppX packages.
+
+
+#  6. Install Chocolatey
+
+[srv1]: PS C:\Users\administrator\Documents> Install-PackageProvider -Name Chocolatey -Verbose -Force
+VERBOSE: Using the provider 'Bootstrap' for searching packages.
+VERBOSE: Finding the package 'Bootstrap::FindPackage' 'Chocolatey','','','''.
+VERBOSE: Using the provider 'PowerShellGet' for searching packages.
+VERBOSE: The -Repository parameter was not specified.  PowerShellGet will use all of the registered repositories
+.
+VERBOSE: Getting the provider object for the PackageManagement Provider 'NuGet'.
+VERBOSE: The specified Location is 'https://www.powershellgallery.com/api/v2/' and PackageManagementProvider is 
+'NuGet'.
+VERBOSE: Searching repository 'https://www.powershellgallery.com/api/v2/FindPackagesById()?id='Chocolatey'' for 
+''.
+VERBOSE: Total package yield:'1' for the specified package 'Chocolatey'.
+VERBOSE: Performing the operation "Install Package" on target "Package 'chocolatey' version '2.8.5.130' from 'ht
+tps://oneget.org/ChocolateyPrototype-2.8.5.130.package.swidtag'.".
+VERBOSE: Installing the package 'https://oneget.org/ChocolateyPrototype-2.8.5.130.package.swidtag'.
+VERBOSE: Installed the package 'chocolatey' to 'C:\Program Files\PackageManagement\ProviderAssemblies\chocolatey
+\2.8.5.130\ChocolateyPrototype.exe'.
+
+Name                           Version          Source           Summary                                       
+----                           -------          ------           -------                                       
+chocolatey                     2.8.5.130        https://onege... ChocolateyPrototype provider for the OneGet...
+VERBOSE: Importing the package provider Chocolatey
+VERBOSE: The provider 'Chocolatey' has already been imported. Trying to import it again.
+VERBOSE: Loading an assembly 'C:\Program Files\PackageManagement\ProviderAssemblies\chocolatey\2.8.5.130\Chocola
+teyPrototype.exe'.
+VERBOSE: Imported provider 'C:\Program Files\PackageManagement\ProviderAssemblies\chocolatey\2.8.5.130\Chocolate
+yPrototype.exe' .
+
+
+
+# 7. verify it;s loaded
+
+
+[srv1]: PS C:\Users\administrator\Documents> Get-PackageProvider | Select-Object Name,Version
+
+Name          Version  
+----          -------  
+Chocolatey    2.8.5.130
+msi           3.0.0.0  
+msu           3.0.0.0  
+NuGet         2.8.5.208
+PowerShellGet 1.0.0.1  
+Programs      3.0.0.0  
+
+# 8. HOw many chocolately packages are there?
+
+
+[srv1]: PS C:\Users\administrator\Documents> $AvailableChocolateyPackages = `
+      Find-Package -ProviderName Chocolatey
+# How many software packages are available at Chocolatey?
+$AvailableChocolateyPackages | Measure-Object
+
+
+Count    : 5942
+Average  : 
+Sum      : 
+Maximum  : 
+Minimum  : 
+Property :
