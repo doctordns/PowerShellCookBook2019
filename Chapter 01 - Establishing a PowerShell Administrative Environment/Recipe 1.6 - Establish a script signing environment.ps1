@@ -1,57 +1,62 @@
 # Recipe 1.6 - Establishing a script signing envionment
 # Performed on CL1
 
-# 0. Creeate the C:\Foo folder
-#    If it exists, just ignore any error
-New-item -Name Foo -path C:\ -ItemType Directory -ErrorAction SilentlyContinue
-
 # 1. Create a script-signing certificate
 $CHT = @{
-  DnsName           = 'CodeSign.Reskit.Org'
+  Subject           = 'Reskit Code Signing'
   Type              = 'CodeSigning' 
   CertStoreLocation = 'Cert:\CurrentUser\My'
 }
 $cert = New-SelfSignedCertificate @CHT
 
-# 2. Display Cert and show cert in store
-$Cert
-Get-ChildItem Cert:\CurrentUser\my -CodeSigningCert | 
-  Where-Object {$_.Subjectname.Name -eq "CN=$($CHT.DnsName)"}
-
-# 32. View the certificate in the loca$Rl user certificate store
-$SHT = @{
-    TypeName     = 'System.Security.Cryptography.X509Certificates.X509Store'
-    ArgumentList = @($DestStoreName, $DestStoreScope)
-}
-$DestStore = New-Object  @SHT
-$StoreF = [System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite
-
-$DestStore.Add($cert)
-
-
-$SourceStore.Close()
-$DestStore.Close()
-   
-
-# 3. Ensure certificate is trusted
-$DestStoreScope = 'LocalMachine'
-$DestStoreName = 'TrustedPublisher'
-
-$DestStore = New-Object  -TypeName System.Security.Cryptography.X509Certificates.X509Store  -ArgumentList $DestStoreName, $DestStoreScope
-$DestStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-$DestStore.Add($cert)
-$DestStore.Close()
-
-L
-
-
-
-
+# 2. Display newly created certificate
+Get-ChildItem -Path Cert:\CurrentUser\my -CodeSigningCert | 
+  Where-Object {$_.Subjectname.Name -match $CHT.Subject}
 
 # 3. Create a simple script
 $Script = @"
  # Sample Script
- Write-Output -Inputobject "Hello World!"
+ "Hello World!"
  Hostname
 "@
-$Script | Out-File -FilePath-    
+$Script | Out-File -FilePath c:\foo\signed.ps1
+Get-ChildItem -Path C:\foo\signed.ps1
+
+# 4. Sign the script
+$SHT = @{
+  Certificate = $cert
+  FilePath    = 'C:\foo\signed.ps1'
+}
+Set-AuthenticodeSignature @SHT -verbose
+Get-ChildItem -Path C:\foo\signed.ps1
+
+# 5. Test the signature
+Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1
+
+# 6. Ensure certificate is trusted
+
+$DestStoreName  = 'Root'
+$DestStoreScope = 'CurrentUser'
+$Type   = 'System.Security.Cryptography.X509Certificates.X509Store'
+$MHT = @{
+  TypeName = $Type  
+  ArgumentList  = ($DestStoreName, $DestStoreScope)
+}
+$DestStore = New-Object  @MHT
+$DestStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+$DestStore.Add($cert)
+$DestStore.Close()
+
+# 6. resign
+Set-AuthenticodeSignature @SHT -verbose
+Get-ChildItem -Path C:\foo\signed.ps1
+Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1
+
+
+
+# UnDo 
+
+Gci cert:\ -recurse | where subject -match 'Reskit Code Signing' | RI -Force
+ri C:\foo\signed.ps1
+
+
