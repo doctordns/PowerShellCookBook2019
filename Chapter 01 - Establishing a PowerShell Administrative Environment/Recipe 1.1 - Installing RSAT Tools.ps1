@@ -110,55 +110,49 @@ $DiffM | Format-Table InputObject -HideTableHeaders
 
 # 12. Get Before CountS
 $FSB1 = {Get-WindowsFeature}
-$FeaturesSRV1 = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB1
-$FeaturesSRV2 = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB1
-$FeaturesDC1  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
-$IFSrv1 = $FeaturesSRV1 | where installed
-$IFSrv2 = $FeaturesSRV2 | where installed
-$IFDC1  = $FeaturesDC1  | where installed 
-$RSFSrv1 = $FeaturesSRV1 | where installed | where name -match 'RSAT'
-$RFSSrv2 = $FeaturesSRV2 | where installed | where name -match 'RSAT'
-$RFSDC1  = $FeaturesDC1  | where installed | where name -match 'RSAT'
+$FeaturesSRV1B = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB1
+$FeaturesSRV2B = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB1
+$FeaturesDC1B  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
+$IFSrv1B = $FeaturesSRV1B | Where-object installed
+$IFSrv2B = $FeaturesSRV2B | Where-Object installed
+$IFDC1B  = $FeaturesDC1B  | Where-Object installed 
+$RSFSrv1B = $FeaturesSRV1B | where installed | where name -match 'RSAT'
+$RFSSrv2B = $FeaturesSRV2B | where installed | where name -match 'RSAT'
+$RFSDC1B  = $FeaturesDC1B  | where installed | where name -match 'RSAT'
 
 # 13. Display results
-"Before Installat
-ion of RSAT tools on DC1, SRV1"
-"$($IFDC1.count) features installed on DC1"
-"$($RFSDC1.count) RSAT features installed on DC1"
-"$($IFSRV1.count) features installed on SRV1"
-"$($RFSSRV1.count) RSAT features installed on SRV1"
-"$($IFSRV2.count) features installed on SRV2"
-"$($RFSSRV2.count) RSAT features installed on SRV2"
+"Before Installation of RSAT tools on DC1, SRV1"
+"$($IFDC1B.count) features installed on DC1"
+"$($RFSDC1B.count) RSAT features installed on DC1"
+"$($IFSRV1B.count) features installed on SRV1"
+"$($RFSSRV1B.count) RSAT features installed on SRV1"
+"$($IFSRV2B.count) features installed on SRV2"
+"$($RFSSRV2B.count) RSAT features installed on SRV2"
 
-# 14.  Just add the RSAT tools to Servers DC1, SRV1
+# 14.  Just add the RSAT tools to ServersSRV1
 $InstallSB = {
   Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
 }
-Invoke-Command -ComputerName DC1, SRV1 -ScriptBlock $InstallSB
+$Install = Invoke-Command -ComputerName SRV1 -ScriptBlock $InstallSB
+$Install
+If ($Install.RestartNeeded -eq 'Yes') {
+  "Restarting SRV1"
+  Restart-Computer -ComputerName SRV1 -Force -Wait -For PowerShell
+}
 
-# 15 restart DC1, SRV1
-Restart-Computer -ComputerName DC1, SRV1 -Force -Wait -for PowerShell
-
-# 16. Look at RSAT tools on SRV1 vs DC1, SRV2
+# 15. Get Details of RSAT tools on SRV1 vs SRV2
 $FSB2 = {Get-WindowsFeature}
-$FeaturesSRV1 = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
-$FeaturesSRV2 = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
-$FeaturesDC1  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB2
-$IFSrv1 = $FeaturesSRV1 | where installed
-$IFSrv2 = $FeaturesSRV2 | where installed
-$IFDC1  = $FeaturesDC1  | where installed 
-$RSFSrv1 = $FeaturesSRV1 | where installed | where name -match 'RSAT'
-$RFSSrv2 = $FeaturesSRV2 | where installed | where name -match 'RSAT'
-$RFSDC1  = $FeaturesDC1  | where installed | where name -match 'RSAT'
-"After Installation of RSAT tools on DC1, SRV1"
-"$($IFDC1.count) features installed on DC1"
-"$($RFSDC1.count) RSAT features installed on DC1"
-"$($IFSRV1.count) features installed on SRV1"
-"$($RFSSRV1.count) RSAT features installed on SRV1"
-"$($IFSRV2.count) features installed on SRV2"
-"$($RFSSRV2.count) RSAT features installed on SRV2"
+$FeaturesSRV1A = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
+$FeaturesSRV2A = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
+$IFSrv1A = $FeaturesSRV1A | Where-Object Installed
+$IFSrv2A = $FeaturesSRV2A | Where-Object Installed
+$RSFSrv1A = $FeaturesSRV1A | Where-Object Installed | where Name -match 'RSAT'
+$RFSSrv2A = $FeaturesSRV2A | Where-Object Installed | where Name -match 'RSAT'
 
-# Display features added to DC1 that are not added to SRV2
+# 16. Display after effects
+"After Installation of RSAT tools on SRV1"
+"$($IFSRV1A.count) features installed on SRV1"
+"$($RSFSrv1A.count) RSAT features installed on SRV1"
+"$($IFSRV2A.count) features installed on SRV2"
+"$($RFSSRV2A.count) RSAT features installed on SRV2"
 
-Compare-Object -ReferenceObject $FeaturesDC1 -DifferenceObject $FeaturesSRV2 |
- Select -Expand Inputobject

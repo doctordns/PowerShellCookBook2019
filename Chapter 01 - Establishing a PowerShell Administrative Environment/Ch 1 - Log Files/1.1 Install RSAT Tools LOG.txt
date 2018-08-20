@@ -133,15 +133,38 @@ No Output
 
 
 Before Installation of RSAT tools on DC1, SRV1, SRV2
-28 features installed on DC1
-9 RSAT features installed on DC1
-13 features installed on SRV1
+29 features installed on DC1
+8 RSAT features installed on DC1
+19 features installed on SRV1
 0 RSAT features installed on SRV1
 13 features installed on SRV2
 0 RSAT features installed on SRV2
 
 
 # 14 install all RSAT tools on both dc1, srv1
+
+
+Success Restart Needed Exit Code      Feature Result                                PSComputerName                                                                             
+------- -------------- ---------      --------------                                --------------                                                                             
+True    Yes            SuccessRest... {BitLocker Drive Encryption, RAS Connectio... SRV1                                                                                       
+
+Restarting SRV1
+
+
+# 15. Get details after 
+    
+
+    no output
+
+
+# 16. Display toosl added to Srv1 vs tols on SRV2
+
+After Installation of RSAT tools on SRV1
+78 features installed on SRV1
+50 RSAT features installed on SRV1
+13 features installed on SRV2
+0 RSAT features installed on SRV2
+
 
 PS C:\Foo> $InstallSB = {
               Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature

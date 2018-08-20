@@ -1,0 +1,125 @@
+PS C:\Users\Administrator> Get-WindowsFeature | where installed | measure
+
+
+Count    : 22
+Average  :
+Sum      :
+Maximum  :
+Minimum  :
+Property :
+
+
+
+PS C:\Users\Administrator> Get-WindowsFeature | where installed | measure
+
+
+Count    : 22
+Average  :
+Sum      :
+Maximum  :
+Minimum  :
+Property :
+
+
+
+PS C:\Users\Administrator> Get-WindowsFeature | where installed
+
+Display Name                                            Name                       Install State
+------------                                            ----                       -------------
+[X] Active Directory Domain Services                    AD-Domain-Services             Installed
+[X] File and Storage Services                           FileAndStorage-Services        Installed
+    [X] Storage Services                                Storage-Services               Installed
+[X] .NET Framework 4.7 Features                         NET-Framework-45-Fea...        Installed
+    [X] .NET Framework 4.7                              NET-Framework-45-Core          Installed
+    [X] WCF Services                                    NET-WCF-Services45             Installed
+        [X] TCP Port Sharing                            NET-WCF-TCP-PortShar...        Installed
+[X] Group Policy Management                             GPMC                           Installed
+[X] Remote Server Administration Tools                  RSAT                           Installed
+    [X] Role Administration Tools                       RSAT-Role-Tools                Installed
+        [X] AD DS and AD LDS Tools                      RSAT-AD-Tools                  Installed
+            [X] Active Directory module for Windows ... RSAT-AD-PowerShell             Installed
+            [X] AD DS Tools                             RSAT-ADDS                      Installed
+                [X] Active Directory Administrative ... RSAT-AD-AdminCenter            Installed
+                [X] AD DS Snap-Ins and Command-Line ... RSAT-ADDS-Tools                Installed
+[X] System Data Archiver                                System-DataArchiver            Installed
+[X] Windows Defender Antivirus                          Windows-Defender               Installed
+[X] Windows PowerShell                                  PowerShellRoot                 Installed
+    [X] Windows PowerShell 5.1                          PowerShell                     Installed
+    [X] Windows PowerShell ISE                          PowerShell-ISE                 Installed
+[X] WoW64 Support                                       WoW64-Support                  Installed
+[X] XPS Viewer                                          XPS-Viewer                     Installed
+
+
+PS C:\Users\Administrator> Get-WindowsFeature | where installed
+
+Display Name                                            Name                       Install State
+------------                                            ----                       -------------
+[X] Active Directory Domain Services                    AD-Domain-Services             Installed
+[X] DNS Server                                          DNS                            Installed
+[X] File and Storage Services                           FileAndStorage-Services        Installed
+    [X] Storage Services                                Storage-Services               Installed
+[X] .NET Framework 4.7 Features                         NET-Framework-45-Fea...        Installed
+    [X] .NET Framework 4.7                              NET-Framework-45-Core          Installed
+    [X] WCF Services                                    NET-WCF-Services45             Installed
+        [X] TCP Port Sharing                            NET-WCF-TCP-PortShar...        Installed
+[X] Group Policy Management                             GPMC                           Installed
+[X] Remote Server Administration Tools                  RSAT                           Installed
+    [X] Role Administration Tools                       RSAT-Role-Tools                Installed
+        [X] AD DS and AD LDS Tools                      RSAT-AD-Tools                  Installed
+            [X] Active Directory module for Windows ... RSAT-AD-PowerShell             Installed
+            [X] AD DS Tools                             RSAT-ADDS                      Installed
+                [X] Active Directory Administrative ... RSAT-AD-AdminCenter            Installed
+                [X] AD DS Snap-Ins and Command-Line ... RSAT-ADDS-Tools                Installed
+        [X] DNS Server Tools                            RSAT-DNS-Server                Installed
+[X] System Data Archiver                                System-DataArchiver            Installed
+[X] Windows Defender Antivirus                          Windows-Defender               Installed
+[X] Windows PowerShell                                  PowerShellRoot                 Installed
+    [X] Windows PowerShell 5.1                          PowerShell                     Installed
+    [X] Windows PowerShell ISE                          PowerShell-ISE                 Installed
+[X] WoW64 Support                                       WoW64-Support                  Installed
+[X] XPS Viewer                                          XPS-Viewer                     Installed
+
+
+PS C:\Users\Administrator> Get-WindowsFeature | where installed | measure
+
+
+Count    : 24
+Average  :
+Sum      :
+Maximum  :
+Minimum  :
+Property :
+
+
+
+PS C:\Users\Administrator> Get-WindowsFeature | where installed
+
+Display Name                                            Name                       Install State
+------------                                            ----                       -------------
+[X] Active Directory Domain Services                    AD-Domain-Services             Installed
+[X] DNS Server                                          DNS                            Installed
+[X] File and Storage Services                           FileAndStorage-Services        Installed
+    [X] Storage Services                                Storage-Services               Installed
+[X] .NET Framework 4.7 Features                         NET-Framework-45-Fea...        Installed
+    [X] .NET Framework 4.7                              NET-Framework-45-Core          Installed
+    [X] WCF Services                                    NET-WCF-Services45             Installed
+        [X] TCP Port Sharing                            NET-WCF-TCP-PortShar...        Installed
+[X] Group Policy Management                             GPMC                           Installed
+[X] Remote Server Administration Tools                  RSAT                           Installed
+    [X] Role Administration Tools                       RSAT-Role-Tools                Installed
+        [X] AD DS and AD LDS Tools                      RSAT-AD-Tools                  Installed
+            [X] Active Directory module for Windows ... RSAT-AD-PowerShell             Installed
+            [X] AD DS Tools                             RSAT-ADDS                      Installed
+                [X] Active Directory Administrative ... RSAT-AD-AdminCenter            Installed
+                [X] AD DS Snap-Ins and Command-Line ... RSAT-ADDS-Tools                Installed
+        [X] DNS Server Tools                            RSAT-DNS-Server                Installed
+[X] System Data Archiver                                System-DataArchiver            Installed
+[X] Windows Defender Antivirus                          Windows-Defender               Installed
+[X] Windows PowerShell                                  PowerShellRoot                 Installed
+    [X] Windows PowerShell 5.1                          PowerShell                     Installed
+    [X] Windows PowerShell ISE                          PowerShell-ISE                 Installed
+[X] WoW64 Support                                       WoW64-Support                  Installed
+[X] XPS Viewer                                          XPS-Viewer                     Installed
+
+
+PS C:\Users\Administrator> ^Q
