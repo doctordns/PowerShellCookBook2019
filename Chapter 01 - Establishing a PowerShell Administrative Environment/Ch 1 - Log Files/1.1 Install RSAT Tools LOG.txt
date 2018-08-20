@@ -126,11 +126,26 @@ UpdateServices
 
 # 12 - Create script blocks for RSAT installation
 
+No Output
 
-$InstallSB = {
-  Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
-}
 
+# 13 Display results
+
+
+Before Installation of RSAT tools on DC1, SRV1, SRV2
+28 features installed on DC1
+9 RSAT features installed on DC1
+13 features installed on SRV1
+0 RSAT features installed on SRV1
+13 features installed on SRV2
+0 RSAT features installed on SRV2
+
+
+# 14 install all RSAT tools on both dc1, srv1
+
+PS C:\Foo> $InstallSB = {
+              Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
+           }
 PS C:\Foo> Invoke-Command -ComputerName DC1, SRV2 -ScriptBlock $InstallSB
 
 PSComputerName : DC1
@@ -153,7 +168,32 @@ ExitCode       : SuccessRestartRequired
 WARNING: You must restart this server to finish the installation process.
 
 
-# 13 Compare DC2, SRV1 and SRV2 
+
+# 15 reboot srv1, dc1
+
+no output
+
+
+# 16 Compare:
+
+"After Installation of RSAT tools on DC1, SRV1"
+"$($IFDC1.count) features installed on DC1"
+"$($RFSDC1.count) RSAT features installed on DC1"
+"$($IFSRV1.count) features installed on SRV1"
+"$($RFSSRV1.count) RSAT features installed on SRV1"
+"$($IFSRV2.count) features installed on SRV2"
+"$($RFSSRV2.count) RSAT features installed on SRV2"
+After Installation of RSAT tools on DC1, SRV1
+
+82 features installed on DC1
+50 RSAT features installed on DC1
+77 features installed on SRV1
+0 RSAT features installed on SRV1
+13 features installed on SRV2
+0 RSAT features installed on SRV2
+
+
+# 13 Compare DC2, SRV1 and SRV2 after installation
 
 PS C:\Foo> "$($FeaturesDC1.count) RSAT features on DC1"
 PS C:\Foo> "$($FeaturesSRV1.count) RSAT features on SRV1"

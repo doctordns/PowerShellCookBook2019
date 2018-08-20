@@ -31,7 +31,8 @@ Set-AuthenticodeSignature @SHT -verbose
 Get-ChildItem -Path C:\foo\signed.ps1
 
 # 5. Test the signature
-Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1
+Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1 |
+    Format-List
 
 # 6. Ensure certificate is trusted
 
@@ -48,10 +49,9 @@ $DestStore.Add($cert)
 $DestStore.Close()
 
 # 6. resign
-Set-AuthenticodeSignature @SHT -verbose
+Set-AuthenticodeSignature @SHT 
 Get-ChildItem -Path C:\foo\signed.ps1
 Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1
-
 
 
 # UnDo 

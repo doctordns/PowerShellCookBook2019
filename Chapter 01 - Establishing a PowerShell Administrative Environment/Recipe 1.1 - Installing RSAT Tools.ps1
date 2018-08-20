@@ -7,7 +7,7 @@
 
 #  Step 0 - Setup CL1 for first time
 #0.1  Set execution Policy
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
 # 0.2 Create Local Foo folder
 New-Item c:\foo -ItemType Directory -Force
 # 0.3 Create profile
@@ -17,6 +17,9 @@ New-Item $profile -Force
 ''                                   | OUT-File $profile -Append
 '#  CD to C:\Foo'                    | OUT-File $profile -Append
 'Set-Location -Path C:\Foo'          | OUT-File $profile -Append
+''                                   | OUT-File $profile -Append
+'# Set an alias'                     | Out-File $Profile -Append
+'Set-Alias gh get-help'              | Out-File $Profile -Append
 Notepad $Profile
 # 0.4 Update Help
 Update-Help -Force
@@ -105,35 +108,57 @@ $DiffM | Format-Table InputObject -HideTableHeaders
 
 ###  NOW Add RSAT to Server
 
-# 12. Just add the RSAT tools to Servers DC1, SRV1
+# 12. Get Before CountS
+$FSB1 = {Get-WindowsFeature}
+$FeaturesSRV1 = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB1
+$FeaturesSRV2 = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB1
+$FeaturesDC1  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
+$IFSrv1 = $FeaturesSRV1 | where installed
+$IFSrv2 = $FeaturesSRV2 | where installed
+$IFDC1  = $FeaturesDC1  | where installed 
+$RSFSrv1 = $FeaturesSRV1 | where installed | where name -match 'RSAT'
+$RFSSrv2 = $FeaturesSRV2 | where installed | where name -match 'RSAT'
+$RFSDC1  = $FeaturesDC1  | where installed | where name -match 'RSAT'
+
+# 13. Display results
+"Before Installat
+ion of RSAT tools on DC1, SRV1"
+"$($IFDC1.count) features installed on DC1"
+"$($RFSDC1.count) RSAT features installed on DC1"
+"$($IFSRV1.count) features installed on SRV1"
+"$($RFSSRV1.count) RSAT features installed on SRV1"
+"$($IFSRV2.count) features installed on SRV2"
+"$($RFSSRV2.count) RSAT features installed on SRV2"
+
+# 14.  Just add the RSAT tools to Servers DC1, SRV1
 $InstallSB = {
   Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
 }
 Invoke-Command -ComputerName DC1, SRV1 -ScriptBlock $InstallSB
-Restart-Computer -ComputerName DC1, SRV1 -Force
 
-# 13. Look at RSAT tools on SRV1 vs DC1, SRV2
-$SB = {
-  Get-WindowsFeature | Where-Object Installed 
-}
-$FeaturesSRV1 = Invoke-Command -ComputerName SRV1 -ScriptBlock $SB
-$FeaturesSRV2 = Invoke-Command -ComputerName SRV2 -ScriptBlock $SB
-$FeaturesDC1  = Invoke-Command -ComputerName DC1  -ScriptBlock $SB
-$RSATDC1 = $FeaturesDC1 | 
-  Where-Object Installed | 
-    Where-Object name -match 'RSAT'
-$RSATDC1 = $FeaturesSRV1 | 
-  Where-Object Installed | 
-    Where-Object name -match 'RSAT'
-$RSATDC1 = $FeaturesSRV2 | 
-  Where-Object Installed | 
-    Where-Object name -match 'RSAT'
+# 15 restart DC1, SRV1
+Restart-Computer -ComputerName DC1, SRV1 -Force -Wait -for PowerShell
 
-"$($FeaturesDC1.count) RSAT features on DC1"
-"$($FeaturesSRV1.count) RSAT features on SRV1"
-"$($FeaturesSRV2.count) RSAT features on SRV2"
+# 16. Look at RSAT tools on SRV1 vs DC1, SRV2
+$FSB2 = {Get-WindowsFeature}
+$FeaturesSRV1 = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
+$FeaturesSRV2 = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
+$FeaturesDC1  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB2
+$IFSrv1 = $FeaturesSRV1 | where installed
+$IFSrv2 = $FeaturesSRV2 | where installed
+$IFDC1  = $FeaturesDC1  | where installed 
+$RSFSrv1 = $FeaturesSRV1 | where installed | where name -match 'RSAT'
+$RFSSrv2 = $FeaturesSRV2 | where installed | where name -match 'RSAT'
+$RFSDC1  = $FeaturesDC1  | where installed | where name -match 'RSAT'
+"After Installation of RSAT tools on DC1, SRV1"
+"$($IFDC1.count) features installed on DC1"
+"$($RFSDC1.count) RSAT features installed on DC1"
+"$($IFSRV1.count) features installed on SRV1"
+"$($RFSSRV1.count) RSAT features installed on SRV1"
+"$($IFSRV2.count) features installed on SRV2"
+"$($RFSSRV2.count) RSAT features installed on SRV2"
 
-# Display features added to SRV1 that are not added to SRV2
+# Display features added to DC1 that are not added to SRV2
 
-Compare-Object -ReferenceObject $FeaturesSRV1 -DifferenceObject $FeaturesSRV2 |
+Compare-Object -ReferenceObject $FeaturesDC1 -DifferenceObject $FeaturesSRV2 |
  Select -Expand Inputobject
