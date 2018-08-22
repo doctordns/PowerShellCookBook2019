@@ -30,7 +30,7 @@ Find-PackageProvider |
 #    power users. Those with some Linux background may think of Chocolatey as
 #    apt-get for Windows. You cannot use this provider until you install it and
 #    confirm the installation:
-Install-PackageProvider -Name Chocolatey -Verbose -Force
+Install-PackageProvider -Name Chocolatey -Force
 
 # 7. Verify Chocolatey is now in the list of installed providers:
 Get-PackageProvider | Select-Object Name,Version
@@ -38,7 +38,5 @@ Get-PackageProvider | Select-Object Name,Version
 # 8. Look for available software packages from the Chocolatey package provider.
 #    Store these in a variable so you don't request the collection more than once, and
 #    explore it:
-$AvailableChocolateyPackages = `
-      Find-Package -ProviderName Chocolatey
-# How many software packages are available at Chocolatey?
-$AvailableChocolateyPackages | Measure-Object
+$AvailableChocolateyPackages = Find-Package -ProviderName Chocolatey
+"$($AvailableChocolateyPackages.Count) available from Chocolatey"
