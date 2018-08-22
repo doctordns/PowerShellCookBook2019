@@ -22,15 +22,18 @@ Suitably updated - this is nearly a hosts file for the HV host.
 ## File Servers
 
 ```powershell
-# Scale-Out Fle server Cluster address
+# Scale-Out File server cluster address
 10.10.10.100     FS.Reskit.Org   # Cluster  address  
 
 # Individual nodes
 10.10.10.101     FS1.Reskit.Org  
 10.10.10.102     FS2.Reskit.Org  
 
-# Storage Server (iSCSI target)
-10.10.10.110     SSRV.Reskit.Org
+# Storage Servers (iScsi targers. Storage Spaces Direct cluster)
+10.10.10.111     SSRV1.Reskit.Org
+10.10.10.112     SSRV2.Reskit.Org
+10.10.10.113     SSRV3.Reskit.Org
+
 ```
 
 ## Hyper-V nodes
