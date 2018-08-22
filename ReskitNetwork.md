@@ -6,7 +6,7 @@ Suitably updated - this is nearly a hosts file for the HV host.
 ## Core Servers
 
 ``` powershell
-# Domain Controllers
+# Domain controllers
 10.10.10.10      DC1.Reskit.Org  
 10.10.10.11      DC2.Reskit.Org  
 
@@ -14,12 +14,12 @@ Suitably updated - this is nearly a hosts file for the HV host.
 10.10.10.20      RootCA.Reskit.Org  
 10.10.10.21      CA.Reskit.Org
 
-# General Purpose servers
+# General purpose servers
 10.10.10.50      SRV1.Reskit.Org  
 10.10.10.51      SRV2.Reskit.Org  
 ```
 
-## File Servers
+## File and Storage Servers
 
 ```powershell
 # Scale-Out File server cluster address
@@ -29,7 +29,7 @@ Suitably updated - this is nearly a hosts file for the HV host.
 10.10.10.101     FS1.Reskit.Org  
 10.10.10.102     FS2.Reskit.Org  
 
-# Storage Servers (iScsi targers. Storage Spaces Direct cluster)
+# Storage servers (iScsi targers. Storage Spaces Direct cluster)
 10.10.10.111     SSRV1.Reskit.Org
 10.10.10.112     SSRV2.Reskit.Org
 10.10.10.113     SSRV3.Reskit.Org
@@ -45,7 +45,7 @@ Suitably updated - this is nearly a hosts file for the HV host.
 10.10.10.201     HV1.Reskit.Org  
 10.10.10.202     HV2.Reskit.Org  
 ```
-## NLB IIS Servers
+## NLB IIS servers
 
 ```powershell
 10.10.10.52      NLB1.Reskit.Org
@@ -58,7 +58,7 @@ Suitably updated - this is nearly a hosts file for the HV host.
 10.10.10.60       PSRV.Reskit.Org
 ```
 
-## Windows Systems Update Services (WSUS)
+## Windows Software Update Services (WSUS)
 
 ```powershell
 # WSUS server
