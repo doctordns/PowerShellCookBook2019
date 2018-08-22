@@ -45,6 +45,18 @@ Suitably updated - this is nearly a hosts file for the HV host.
 10.10.10.201     HV1.Reskit.Org  
 10.10.10.202     HV2.Reskit.Org  
 ```
+## NLB IIS Servers
+
+```powershell
+10.10.10.52      NLB1.Reskit.Org
+10.10.10.52      NLB2.Reskit.Org
+````
+
+## Print server
+
+```powershell
+10.10.10.60       PSRV.Reskit.Org
+```
 
 ## Windows Systems Update Services (WSUS)
 
