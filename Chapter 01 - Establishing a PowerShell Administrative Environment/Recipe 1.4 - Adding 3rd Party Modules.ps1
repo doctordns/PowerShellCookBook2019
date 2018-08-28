@@ -3,3 +3,5 @@
 # Run from CL1 and using DC1 and SRV1
 
 # 1. 
+
+PSWindowsUpdate

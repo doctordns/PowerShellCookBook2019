@@ -5,7 +5,9 @@
 # Run From CL1
 
 
-#  Step 0 - Setup CL1 for first time
+#  0 - Setup CL1 for first time
+#      Run this the first time you use CL1     
+
 #0.1  Set execution Policy
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
 # 0.2 Create Local Foo folder
@@ -47,7 +49,6 @@ $CliVer   = (Get-ItemProperty -Path $Key).ReleaseId
 $Platform = $ENV:PROCESSOR_ARCHITECTURE
 "Windows Client Version : $CliVer"
 "Hardware Platform      : $Platform"
-
 
 # 5. Create URL for download file
 #    NB: only works with 1709 and 1803.
@@ -116,9 +117,15 @@ $FeaturesDC1B  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
 $IFSrv1B = $FeaturesSRV1B | Where-object installed
 $IFSrv2B = $FeaturesSRV2B | Where-Object installed
 $IFDC1B  = $FeaturesDC1B  | Where-Object installed 
-$RSFSrv1B = $FeaturesSRV1B | where installed | where name -match 'RSAT'
-$RFSSrv2B = $FeaturesSRV2B | where installed | where name -match 'RSAT'
-$RFSDC1B  = $FeaturesDC1B  | where installed | where name -match 'RSAT'
+$RSFSrv1B = $FeaturesSRV1B |
+              Where-Object Installed | 
+                Where-Object Name -Match 'RSAT'
+$RFSSrv2B = $FeaturesSRV2B | 
+              Where-Object Installed | 
+                Where-Object Name -Match 'RSAT'
+$RFSDC1B = $FeaturesDC1B  | 
+             Where-Object Installed |
+               Where-Object Name -Match 'RSAT'
 
 # 13. Display results
 "Before Installation of RSAT tools on DC1, SRV1"
@@ -146,8 +153,10 @@ $FeaturesSRV1A = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
 $FeaturesSRV2A = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
 $IFSrv1A = $FeaturesSRV1A | Where-Object Installed
 $IFSrv2A = $FeaturesSRV2A | Where-Object Installed
-$RSFSrv1A = $FeaturesSRV1A | Where-Object Installed | where Name -match 'RSAT'
-$RFSSrv2A = $FeaturesSRV2A | Where-Object Installed | where Name -match 'RSAT'
+$RSFSrv1A = $FeaturesSRV1A | Where-Object Installed | 
+              Where-Object Name -Match 'RSAT'
+$RFSSrv2A = $FeaturesSRV2A | Where-Object Installed |
+              Where-Object Name -Match 'RSAT'
 
 # 16. Display after effects
 "After Installation of RSAT tools on SRV1"
@@ -155,4 +164,3 @@ $RFSSrv2A = $FeaturesSRV2A | Where-Object Installed | where Name -match 'RSAT'
 "$($RSFSrv1A.count) RSAT features installed on SRV1"
 "$($IFSRV2A.count) features installed on SRV2"
 "$($RFSSRV2A.count) RSAT features installed on SRV2"
-
