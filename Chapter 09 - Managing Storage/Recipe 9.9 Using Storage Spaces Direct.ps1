@@ -37,12 +37,17 @@ Install-WindowsFeature @SBHT
 } # End Config Script block
 
 # 4. Run script block on all three systems
-$Results = Invoke-Command -Session $S -ScriptBlock $SB # do all three in parallel
+Invoke-Command -Session $S -ScriptBlock $SB !
+    Out-Null 
 
 # 5. See what is there
-Invoke-Command -Session $s -scr {Get-windowsfeature *  | Where-Object Installed}| 
-    Sort-Object -Property PSComputerName,DisplayName |
-      Format-Table -Property DisplayName -Group PSComputerName
+$SB = 
+{ Get-WindowsFeature *  | 
+    Where-Object Installed 
+}
+Invoke-Command -Session $s -ScriptBlock $SB} | 
+  Sort-Object -Property PSComputerName,DisplayName |
+    Format-Table -Property DisplayName -Group PSComputerName
 
 # 6. Remove Windows-Defender
 # This avoids issues with clulster validation
@@ -53,9 +58,9 @@ Stop-Computer -ComputerName SSRV1 -Force
 Stop-Computer -ComputerName SSRV2 -Force
 Stop-Computer -ComputerName SSRV3 -Force
 
-
 ## After reboot - run this from on SSRV1
 ##
+
 # 8. Take a check point to avoid re-installing. :-)
 Checkpoint-VM -VM SSRV1, SSRV2, SSRV3 -SnapshotName 'Post WU, Pre-Cluster test'
 Start-vm -VMName SSRV1, SSRV2, SSRV3
@@ -67,8 +72,9 @@ Get-WindowsUpdate -ComputerName SSRV1, SSRV2, SSRV3 -Verbose -AcceptAll -Install
 
 # 10. Test the cluster
 Get-Date
-$Nodes = @('SSRV1.Reskit.org', 'SSRV2.Reskit.org','SSRV3.Reskit.Org')
-$INF = Test-Cluster –Node $Nodes -verbose -debug –Include "Storage Spaces Direct", "Inventory", "Network", "System Configuration"
+$Nodes = @('SSRV1.Reskit.org', 'SSRV2.Reskit.org', 'SSRV3.Reskit.Org')
+$Roles = @('Storage Spaces Direct', '"Inventory', 'Network', '"System Configuration')
+$INF = Test-Cluster -Node $Nodes -Include $Roles -Verbose
 
 # 11. view the output report
 Invoke-Item $INF
@@ -78,7 +84,7 @@ $VMs = @('SSRV1','ssrv2', 'ssrv3')
 $SN  = 'Post WU, post-Cluster test'
 Checkpoint-VM -VMName $VMs -SnapshotName $SN -ComputerName Cooham24
 
-# 13. Build a new fail over cluster
+# 13. Build a new fail-over cluster
 $NCHT = @{}
 $NCHT.Name          = 'SSRV'
 $NCHT.Node          = $Nodes
@@ -86,13 +92,11 @@ $NCHT.NoStorage     = $True
 $NCHT.StaticAddress = '10.10.10.110/24'
 New-Cluster @NCHT -verbose -Debug
 
-
-# 9. Enable S2D 
+# 9. Enable Storage Spaces Direct
 Enable-ClusterStorageSpacesDirect -PoolFriendlyName 'ReskitS2D' -Confirm:$False
 
 # 10. Create Scale Out File Server 
 Add-ClusterScaleOutFileServerRole -Name SOFS -Cluster SSRV
-
 
 # 11. Create two volumes
 New-Volume -FriendlyName 'IT' -FileSystem CSVFS_ReFS -StoragePoolFriendlyName 'ReskitS2D' -size 100mb
@@ -113,10 +117,11 @@ New-SMBShare -Name ITSSRV1 -Path $ITL1
 # 13. View results
 Get-SmbShare
 
-
 # 14. Create a test file in the two folders
 'IT files' | Out-File -FilePath C:\ClusterStorage\IT\ITFolder\Files.txt
 'HR files' | Out-File -FilePath C:\ClusterStorage\HR\HRFolder\Files.txt
+
+
 
 
 #  utility stuff
@@ -139,7 +144,8 @@ Get-WindowsUpdate -ComputerName ssrv1, ssrv2, ssrv3 -verbose
 
 #  CLEAN UP
 Disable-ClusterStorageSpacesDirect 
-Get-ClusterResource | where name -match 'sofs' | Remove-ClusterResource -Force
+Get-ClusterResource | where-Object Name -Match 'sofs' |
+  Remove-ClusterResource -Force
 Get-ClusterResource | Remove-ClusterResource -force
 Get-Cluster | Remove-Cluster -CleanupAD -verbose -Force
 invoke-Command -computer -script {
