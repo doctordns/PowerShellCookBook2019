@@ -118,7 +118,7 @@ $FeaturesDC1B  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
 $IFSrv1B = $FeaturesSRV1B | Where-object installed
 $IFSrv2B = $FeaturesSRV2B | Where-Object installed
 $IFDC1B  = $FeaturesDC1B  | Where-Object installed 
-$RSFSrv1B = $FeaturesSRV1B |
+$RFSrv1B = $FeaturesSRV1B |
               Where-Object Installed | 
                 Where-Object Name -Match 'RSAT'
 $RFSSrv2B = $FeaturesSRV2B | 
@@ -132,12 +132,12 @@ $RFSDC1B = $FeaturesDC1B  |
 "Before Installation of RSAT tools on DC1, SRV1"
 "$($IFDC1B.count) features installed on DC1"
 "$($RFSDC1B.count) RSAT features installed on DC1"
-"$($IFSRV1B.count) features installed on SRV1"
-"$($RFSSRV1B.count) RSAT features installed on SRV1"
-"$($IFSRV2B.count) features installed on SRV2"
+"$($IFSrv1B.count) features installed on SRV1"
+"$($RFSrv1B.count) RSAT features installed on SRV1"
+"$($IFSrv2B.count) features installed on SRV2"
 "$($RFSSRV2B.count) RSAT features installed on SRV2"
 
-# 14.  Just add the RSAT tools to ServersSRV1
+# 14.  Just add the RSAT tools to Servers SRV1
 $InstallSB = {
   Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
 }

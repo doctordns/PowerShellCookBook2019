@@ -45,7 +45,7 @@ $SB =
 { Get-WindowsFeature *  | 
     Where-Object Installed 
 }
-Invoke-Command -Session $s -ScriptBlock $SB} | 
+Invoke-Command -Session $s -ScriptBlock $SBs | 
   Sort-Object -Property PSComputerName,DisplayName |
     Format-Table -Property DisplayName -Group PSComputerName
 
