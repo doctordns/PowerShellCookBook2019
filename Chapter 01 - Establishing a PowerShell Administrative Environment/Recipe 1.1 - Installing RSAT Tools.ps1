@@ -78,8 +78,9 @@ Else
 
 # 8. Install the RSAT tools
 $WusaArguments = $DLFile + " /quiet"
-"Installing RSAT for Windows 10 - please wait"
-Start-Process -FilePath "C:\Windows\System32\wusa.exe" -ArgumentList $WusaArguments -Wait
+"Installing RSAT for Windows 10 - Please Wait..."
+$Path = 'C:\Windows\System32\wusa.exe' 
+Start-Process -FilePath $Path -ArgumentList $WusaArguments -Wait
 
 # 9. Now that RSAT features are installed, see what commands are available on the client:
 $CommandsAfterRSAT        = Get-Command -Module *

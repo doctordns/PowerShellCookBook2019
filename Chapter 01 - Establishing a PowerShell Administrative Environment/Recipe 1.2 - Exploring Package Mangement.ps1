@@ -7,18 +7,19 @@ Get-Command -Module PackageManagement
 
 # 2. Review the installed providers with Get-PackageProvider:
 Get-PackageProvider | 
-    Format-Table -Property Name, Version, SupportedFileExtensions,
+    Format-Table -Property Name, 
+                           Version, 
+                           SupportedFileExtensions,
                            FromtrustedSource
 
-# 3. The provider list includes msi, msu, and Programs package providers. These
-#    providers expose applications and updates installed on your computer which
-#    you can explore. :ppl at one (MSU)
-Get-Package -ProviderName msu |
+# 3. The provider list includes msi, msu, and Programs package 
+#    providers. These providers expose applications and updates
+#    installed on your computer which you can explore.
+Get-Package -ProviderName 'msu' |
     Select-Object -ExpandProperty Name
 
-# 4. The NuGet source contains developer library packages. This functionality is
-#    outside the scope of this book, but worth exploring if you do Windows or web
-#    development:
+# 4. The NuGet source contains developer library packages. The 
+#    details of NuGet are outside the scope of this book.
 Get-PackageProvider -Name NuGet -ForceBootstrap
 
 # 5. There are also other package providers you can explore:
@@ -26,9 +27,9 @@ Find-PackageProvider |
     Select-Object -Property Name,Summary |
         Format-Table -Wrap -AutoSize
 
-# 6. Notice Chocolatey, which is a very useful tool for Windows administrators and
-#    power users. Those with some Linux background may think of Chocolatey as
-#    apt-get for Windows. You cannot use this provider until you install it and
+# 6. Notice Chocolatey, which is another popular repository for Windows
+#    administrators as well as  power users. 
+#    Note that you cannot use this provider until you install it and
 #    confirm the installation:
 Install-PackageProvider -Name Chocolatey -Force
 
