@@ -9,11 +9,16 @@
 
 ###  Part 1 - run on DC1
 
-# 1. Install the AD Domain Services
+# 1. Install the AD Domain Services feature and management tools
 Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
 
-# 2. Install This system as the first DC in a new forest.
-$PSS = ConvertTo-SecureString  -String 'Pa$$w0rd' -AsPlainText -Force
+# 2.	Install DC1 as forest root server (DC1.Reskit.Org)d
+$PSSHT = @{
+  String      = 'Pa$$w0rd'
+  AsPlainText = $true
+  Force       = $true
+}
+$PSS = ConvertTo-SecureString @PSSHT
 $ADHT = @{
   DomainName                    = 'Reskit.Org'
   SafeModeAdministratorPassword = $PSS
