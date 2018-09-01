@@ -12,7 +12,7 @@
 # 1. Install the AD Domain Services feature and management tools
 Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
 
-# 2.	Install DC1 as forest root server (DC1.Reskit.Org)d
+# 2.	Install DC1 as forest root server (DC1.Reskit.Org)
 $PSSHT = @{
   String      = 'Pa$$w0rd'
   AsPlainText = $true
@@ -34,7 +34,10 @@ Install-ADDSForest @ADHT
 Restart-Computer -Force
 
 ### Part 2 - run on DC2
-#   Assumes DC1 is a DC, DC2 is a domain joined server
+#   Assumes DC1 is now a DC, DC2 is another workgroup server
+#
+
+
 
 # 4. Check DC1 can be resolved, and can be reached over 445 and 389 from DC2
 Resolve-DnsName -Name DC1.Reskit.Org -Server DC1.Reskit.Org -Type A
