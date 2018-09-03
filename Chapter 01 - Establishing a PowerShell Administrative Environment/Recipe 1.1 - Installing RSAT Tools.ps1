@@ -15,15 +15,16 @@ New-Item c:\foo -ItemType Directory -Force
 # 0.3 Create profile
 New-Item $profile -Force
 '# Profile file created by recipes'  | OUT-File $profile
-"# Profile for [$($host.name)]"      | OUT-File $profile -Append
+'# Profile for CL1'                  | OUT-File $profile -Append
 ''                                   | OUT-File $profile -Append
-'#  CD to C:\Foo'                    | OUT-File $profile -Append
+'#  Set location'                    | OUT-File $profile -Append
 'Set-Location -Path C:\Foo'          | OUT-File $profile -Append
 ''                                   | OUT-File $profile -Append
 '# Set an alias'                     | Out-File $Profile -Append
 'Set-Alias gh get-help'              | Out-File $Profile -Append
-Notepad $Profile
-# 0.4 Update Help
+# 0.4 View profile
+Nnotepad $Profile
+# 0.5 Update Help
 Update-Help -Force
 
 # 1. Get all available PowerShell commands
@@ -38,10 +39,10 @@ $CommandsBeforeRSAT | Get-Member |
 
 
 # 3. Get the collection of PowerShell modules and a count of 
-#    modules beore adding the RSAT tools
+#    modules before adding the RSAT tools
 $ModulesBeforeRSAT = Get-Module -ListAvailable 
 $CountOfModulesBeforeRSAT = $ModulesBeforeRSAT.count
-"$CountOfModulesBeforeRSAT modules are installed prior to adding RSAT"
+"$CountOfModulesBeforeRSAT modules installed prior to adding RSAT"
 
 # 4. Get Windows Client Version and Hardware platform
 $Key      = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
@@ -52,33 +53,38 @@ $Platform = $ENV:PROCESSOR_ARCHITECTURE
 
 # 5. Create URL for download file
 #    NB: only works with 1709 and 1803.
-$LP1 = 'https://download.microsoft.com/download/1/D/8/1D8B5022-5477-4B9A-8104-6A71FF9D98AB/'
+$LP1 = 'https://download.microsoft.com/download/1/D/8/'+
+       '1D8B5022-5477-4B9A-8104-6A71FF9D98AB/'
 $Lp180364 = 'WindowsTH-RSAT_WS_1803-x64.msu'
 $Lp170964 = 'WindowsTH-RSAT_WS_1709-x64.msu'
 $Lp180332 = 'WindowsTH-RSAT_WS_1803-x86.msu'
 $Lp170932 = 'WindowsTH-RSAT_WS_1709-x86.msu'
-If     ($CliVer -eq 1803 -and $Platform -eq 'AMD64') {$DLPath = $Lp1 + $lp180364}
-ELSEIf ($CliVer -eq 1709 -and $Platform -eq 'AMD64') {$DLPath = $Lp1 + $lp170964}
-ElseIf ($CliVer -eq 1803 -and $Platform -eq 'X86')   {$DLPath = $Lp1 + $lp180332}
-ElseIf ($CliVer -eq 1709 -and $platform -eq 'x86')   {$DLPath = $Lp1 + $lp170932}
+If     ($CliVer -eq 1803 -and $Platform -eq 'AMD64') {
+  $DLPath = $Lp1 + $lp180364}
+ELSEIf ($CliVer -eq 1709 -and $Platform -eq 'AMD64') {
+  $DLPath = $Lp1 + $lp170964}
+ElseIf ($CliVer -eq 1803 -and $Platform -eq 'X86')   {
+  $DLPath = $Lp1 + $lp180332}
+ElseIf ($CliVer -eq 1709 -and $platform -eq 'x86')   {
+  $DLPath = $Lp1 + $lp170932}
 Else {"Version $cliver - unknown"; return}
 "RSAT MSU file to be downloaded:"
 $DLPath
 
-# 6. Use BITs to download the file
+# 6. Use BITS to download the file
 $DLFile = 'C:\foo\Rsat.msu'
 Start-BitsTransfer -Source $DLPath -Destination $DLFile
 
-# 7. Check authenticode signature
+# 7. Check Authenticode signature
 $Authenticatefile = Get-AuthenticodeSignature $DLFile
 If ($Authenticatefile.status -NE "Valid")
-  {'File downloaded fails authenticode check'}
+  {'File downloaded fails Authenticode check'}
 Else
-  {'Downloaded file passes authenticode check'}
+  {'Downloaded file passes Authenticode check'}
 
 # 8. Install the RSAT tools
 $WusaArguments = $DLFile + " /quiet"
-"Installing RSAT for Windows 10 - Please Wait..."
+'Installing RSAT for Windows 10 - Please Wait...'
 $Path = 'C:\Windows\System32\wusa.exe' 
 Start-Process -FilePath $Path -ArgumentList $WusaArguments -Wait
 
@@ -112,21 +118,22 @@ $DiffM | Format-Table InputObject -HideTableHeaders
 
 # 12. Get Before CountS
 $FSB1 = {Get-WindowsFeature}
-$FeaturesSRV1B = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB1
-$FeaturesSRV2B = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB1
-$FeaturesDC1B  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
-$IFSrv1B = $FeaturesSRV1B | Where-object installed
-$IFSrv2B = $FeaturesSRV2B | Where-Object installed
-$IFDC1B  = $FeaturesDC1B  | Where-Object installed 
+$FSRV1B = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB1
+$FSRV2B = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB1
+$FDC1B  = Invoke-Command -ComputerName DC1  -ScriptBlock $FSB1
+$IFSrv1B = $FSRV1B | Where-object installed
+$IFSrv2B = $SRV2B  | Where-Object installed
+$IFDC1B  = $FDC1B  | Where-Object installed 
 $RFSrv1B = $FeaturesSRV1B |
               Where-Object Installed | 
                 Where-Object Name -Match 'RSAT'
 $RFSSrv2B = $FeaturesSRV2B | 
               Where-Object Installed | 
                 Where-Object Name -Match 'RSAT'
-$RFSDC1B = $FeaturesDC1B  | 
+$RFSDC1B = $FeaturesDC1B | 
              Where-Object Installed |
                Where-Object Name -Match 'RSAT'
+
 
 # 13. Display results
 "Before Installation of RSAT tools on DC1, SRV1"
@@ -141,22 +148,22 @@ $RFSDC1B = $FeaturesDC1B  |
 $InstallSB = {
   Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
 }
-$Install = Invoke-Command -ComputerName SRV1 -ScriptBlock $InstallSB
-$Install
-If ($Install.RestartNeeded -eq 'Yes') {
+$I = Invoke-Command -ComputerName SRV1 -ScriptBlock $InstallSB
+$I
+If ($I.RestartNeeded -eq 'Yes') {
   "Restarting SRV1"
   Restart-Computer -ComputerName SRV1 -Force -Wait -For PowerShell
 }
 
 # 15. Get Details of RSAT tools on SRV1 vs SRV2
 $FSB2 = {Get-WindowsFeature}
-$FeaturesSRV1A = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
-$FeaturesSRV2A = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
-$IFSrv1A = $FeaturesSRV1A | Where-Object Installed
-$IFSrv2A = $FeaturesSRV2A | Where-Object Installed
-$RSFSrv1A = $FeaturesSRV1A | Where-Object Installed | 
+$FSRV1A = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
+$FSRV2A = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
+$IFSrv1A = $FSRV1A | Where-Object Installed
+$IFSrv2A = $FSRV2A | Where-Object Installed
+$RSFSrv1A = $SRV1A | Where-Object Installed | 
               Where-Object Name -Match 'RSAT'
-$RFSSrv2A = $FeaturesSRV2A | Where-Object Installed |
+$RFSSrv2A = $FSRV2A | Where-Object Installed |
               Where-Object Name -Match 'RSAT'
 
 # 16. Display after effects
