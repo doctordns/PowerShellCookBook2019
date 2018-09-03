@@ -62,7 +62,7 @@ You must restart this compute... DCPromo.General.4           True Success
    no output
 
     
-#  4.  Look at Root DSE in newly promoted DC
+#  4.  Logon first to DC1 and look at Root DSE in newly promoted DC
 
 
 PS C:\Foo> Get-ADRootDSE |
@@ -74,7 +74,7 @@ DC1.Reskit.Org                   Windows2016   Windows2016Domain   Windows2016Fo
 
 
 
-#  on DC2
+#  now logon to DC2
 # 5. Check DC1 can be resolved, and can be reached over 445 and 389 from DC2
 
 
