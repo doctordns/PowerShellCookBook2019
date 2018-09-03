@@ -1,0 +1,191 @@
+﻿# 3.1 - Installing Active Directory with DNS LOG File
+
+
+# 1 Install the AD Domain Services feature and management tools
+
+
+PS C:\> Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+
+Success Restart Needed Exit Code      Feature Result                               
+------- -------------- ---------      --------------                               
+True    No             Success        {Active Directory Domain Services, Group P...
+
+
+
+#   2   Configure DC1 as 1st DC in reskit.org domain
+
+
+PS C:\Foo> $PSSHT = @{
+  String      = 'Pa$$w0rd'
+  AsPlainText = $true
+  Force       = $true
+}
+$PSS = ConvertTo-SecureString @PSSHT
+$ADHT = @{
+  DomainName                    = 'Reskit.Org'
+  SafeModeAdministratorPassword = $PSS
+  InstallDNS                    = $true
+  DomainMode                    = 'WinThreshold'
+  ForestMode                    = 'WinThreshold'
+  Force                         = $true
+  NoRebootOnCompletion          = $true
+}
+Install-ADDSForest @ADHT
+
+
+WARNING: Windows Server 2019 domain controllers have a default 
+for the security setting named "Allow cryptography algorithms 
+compatible with Windows NT 4.0" that prevents weaker cryptography 
+algorithms when establishing security channel sessions.
+
+For more information about this setting, see Knowledge Base article 
+942564 (http://go.microsoft.com/fwlink/?LinkId=104751).
+
+WARNING: A delegation for this DNS server cannot be created because 
+the authoritative parent zone cannot be found or it does not run Windows 
+DNS server. If you are integrating with an existing DNS infrastructure, 
+you should manually create a delegation to this DNS server in the parent 
+zone to ensure reliable name resol
+ution from outside the domain "Reskit.Org". Otherwise, no action is
+ required.
+
+Message                          Context           RebootRequired  Status
+-------                          -------           --------------  ------
+You must restart this compute... DCPromo.General.4           True Success
+
+
+
+
+#  3. Restart the DC
+
+
+   no output
+
+    
+#  4.  Look at Root DSE in newly promoted DC
+
+
+PS C:\Foo> Get-ADRootDSE |
+             Format-Table -Property dns*, *functionality
+
+dnsHostName    domainControllerFunctionality domainFunctionality forestFunctionality
+-----------    ----------------------------- ------------------- -------------------
+DC1.Reskit.Org                   Windows2016   Windows2016Domain   Windows2016Forest
+
+
+
+#  on DC2
+# 5. Check DC1 can be resolved, and can be reached over 445 and 389 from DC2
+
+
+PS C:\foo> Resolve-DnsName -Name DC1.Reskit.Org -Server DC1.Reskit.Org -Type A
+
+Name                                           Type   TTL   Section    IPAddress
+----                                           ----   ---   -------    ---------
+DC1.Reskit.Org                                 A      3600  Answer     10.10.10.10
+DC1.Reskit.Org                                 A      3600  Answer     10.10.1.30
+
+PS C:\foo> Test-NetConnection -ComputerName DC1.Reskit.Org -Port 445
+
+ComputerName     : DC1.Reskit.Org
+RemoteAddress    : 10.10.10.10
+RemotePort       : 445
+InterfaceAlias   : Ethernet
+SourceAddress    : 10.10.10.11
+TcpTestSucceeded : True
+
+PS C:\foo> Test-NetConnection -ComputerName DC1.Reskit.Org -Port 389
+
+ComputerName     : DC1.Reskit.Org
+RemoteAddress    : 10.10.10.10
+RemotePort       : 389
+InterfaceAlias   : Ethernet
+SourceAddress    : 10.10.10.11
+TcpTestSucceeded : True
+
+
+
+# 6. Add the AD DS features on DC2
+
+
+PS C:\Foo> $Features = 'AD-Domain-Services', 'DNS','RSAT-DHCP', 'Web-Mgmt-Tools'
+PS C:\Foo> Install-WindowsFeature -Name $Features
+
+Success Restart Needed Exit Code      Feature Result                               
+------- -------------- ---------      --------------                               
+True    No             Success        {Active Directory Domain Services, DNS Ser...
+
+
+# 7. Install DC2 as a DC
+
+PS C:\Foo> $URK = "administrator@reskit.org"
+PS C:\Foo> $PSS = ConvertTo-SecureString -String 'Pa$$w0rd' -AsPlainText -Force
+PS C:\Foo> $CredRK = New-Object system.management.automation.PSCredential $URK,$PSS
+PS C:\Foo> $IHT =@{
+             DomainName                    = 'Reskit.org'
+             SafeModeAdministratorPassword = $PSS
+             SiteName                      = 'Default-First-Site-Name'
+             NoRebootOnCompletion          = $true
+             Force                         = $true
+           } 
+PS C:\Foo> Install-ADDSDomainController @IHT -Credential $CredRK
+WARNING: Windows Server 2019 domain controllers have a default for the security setting named "Allow cryptography algorithms compatible with Windows NT 4.0" that prevents weaker cryp
+tography algorithms when establishing security channel sessions.
+
+For more information about this setting, see Knowledge Base article 942564 (http://go.microsoft.com/fwlink/?LinkId=104751).
+
+WARNING: A delegation for this DNS server cannot be created because the authoritative parent zone cannot be found or it does not run Windows DNS server. If you are integrating with a
+n existing DNS infrastructure, you should manually create a delegation to this DNS server in the parent zone to ensure reliable name resolution from outside the domain "Reskit.Org". 
+Otherwise, no action is required.
+
+WARNING: Windows Server 2019 domain controllers have a default for the security setting named "Allow cryptography algorithms compatible with Windows NT 4.0" that prevents weaker cryp
+tography algorithms when establishing security channel sessions.
+
+For more information about this setting, see Knowledge Base article 942564 (http://go.microsoft.com/fwlink/?LinkId=104751).
+
+WARNING: This computer has at least one physical network adapter that does not have static IP address(es) assigned to its IP Properties. If both IPv4 and IPv6 are enabled for a netwo
+rk adapter, both IPv4 and IPv6 static IP addresses should be assigned to both IPv4 and IPv6 Properties of the physical network adapter. Such static IP address(es) assignment should b
+e done to all the physical network adapters for reliable Domain Name System (DNS) operation.
+
+
+WARNING: A delegation for this DNS server cannot be created because the authoritative parent zone cannot be found or it does not run Windows DNS server. If you are integrating with a
+n existing DNS infrastructure, you should manually create a delegation to this DNS server in the parent zone to ensure reliable name resolution from outside the domain "Reskit.Org". 
+Otherwise, no action is required.
+
+
+
+Message                                                     Context           RebootRequired  Status
+-------                                                     -------           --------------  ------
+You must restart this computer to complete the operation... DCPromo.General.4           True Success
+
+
+# 8. REBOOT
+
+no output
+
+
+# 9. examine the forst
+
+
+PS C:\foo> Get-AdForest | 
+  Format-Table -Property *master*,globaL*,Domains
+
+
+DomainNamingMaster SchemaMaster   GlobalCatalogs                   Domains     
+------------------ ------------   --------------                   -------     
+DC1.Reskit.Org     DC1.Reskit.Org {DC1.Reskit.Org, DC2.Reskit.Org} {Reskit.Org}
+
+
+
+# 10. And look at the domain
+
+
+
+PS C:\foo> Get-ADDomain | 
+             Format-Table -Property DNS*,PDC*,*master,Replica*
+
+
+DNSRoot    PDCEmulator    InfrastructureMaster RIDMaster      ReplicaDirectoryServers         
+-------    -----------    -------------------- ---------      -----------------------         
+Reskit.Org DC1.Reskit.Org DC1.Reskit.Org       DC1.Reskit.Org {DC1.Reskit.Org, DC2.Reskit.Org}
+

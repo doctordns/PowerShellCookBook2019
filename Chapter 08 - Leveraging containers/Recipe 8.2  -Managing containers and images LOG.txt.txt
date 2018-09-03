@@ -1,0 +1,4 @@
+# Recipe 8.2 - Managing containers and images  - LOG
+
+# 1. What container images exist
+

@@ -23,8 +23,8 @@ $ADHT = @{
   DomainName                    = 'Reskit.Org'
   SafeModeAdministratorPassword = $PSS
   InstallDNS                    = $true
-  DomainMode                    = 'Win2016'
-  ForestMode                    = 'Win2016'
+  DomainMode                    = 'WinThreshold'
+  ForestMode                    = 'WinThreshold'
   Force                         = $true
   NoRebootOnCompletion          = $true
 }
@@ -33,31 +33,46 @@ Install-ADDSForest @ADHT
 # 3. Restart Computer
 Restart-Computer -Force
 
+# 4. After reboot, log back into DC1 as Reskit\Administrator, then:
+Get-ADRootDSE |
+  Format-Table -Property dns*, *functionality
+
+
+
 ### Part 2 - run on DC2
 #   Assumes DC1 is now a DC, DC2 is another workgroup server
-#
 
-
-
-# 4. Check DC1 can be resolved, and can be reached over 445 and 389 from DC2
-Resolve-DnsName -Name DC1.Reskit.Org -Server DC1.Reskit.Org -Type A
+# 5. Check DC1 can be resolved, and 
+#    can be reached over 445 and 389 from DC2
+Resolve-DnsName -Name DC1.Reskit.Org -Type A
 Test-NetConnection -ComputerName DC1.Reskit.Org -Port 445
 Test-NetConnection -ComputerName DC1.Reskit.Org -Port 389
 
-# 5. Add the AD DS features on DC2
-$Features = 'AD-Domain-Services, DNS,RSAT-DHCP, Web-Mgmt-Tools'
-Install-WindowsFeature -Feature @Features
+# 6. Add the AD DS features on DC2
+$Features = 'AD-Domain-Services', 'DNS','RSAT-DHCP', 'Web-Mgmt-Tools'
+Install-WindowsFeature -Name $Features
 
-# 6. Promote DC2 to be a DC in the Reskit.Org domain:
+# 7. Promote DC2 to be a DC in the Reskit.Org domain:
+$URK = "administrator@reskit.org"
 $PSS = ConvertTo-SecureString -String 'Pa$$w0rd' -AsPlainText -Force
+$CredRK = New-Object system.management.automation.PSCredential $URK,$PSS
 $IHT =@{
   DomainName                    = 'Reskit.org'
   SafeModeAdministratorPassword = $PSS
   SiteName                      = 'Default-First-Site-Name'
   NoRebootOnCompletion          = $true
   Force                         = $true
-}
-Install-ADDSDomainController @IHT
+} 
+Install-ADDSDomainController @IHT -Credential $CredRK
 
-# 7. After reboot, logon to DC1
-Get-ADRootDSE -Server DC1
+# 8 Reboot DC2
+Restart-Computer -Force
+
+# 9. After reboot, logon to DC1 and view the forest.
+Get-AdForest | 
+  Format-Table -Property *master*,globaL*,Domains
+
+# 10. View details of the domain
+Get-ADDomain | 
+  Format-Table -Property DNS*,PDC*,*master,Replica*
+

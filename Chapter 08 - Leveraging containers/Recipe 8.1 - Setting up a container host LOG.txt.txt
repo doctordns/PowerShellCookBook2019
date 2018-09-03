@@ -1,0 +1,152 @@
+# Recipe 8.1 - Setting up a container host
+
+
+#  1. Install nuget provider
+
+
+PS C:\foo> Install-PackageProvider -Name nuget -Force
+
+
+Name   Version    Source           Summary                                                                                                                                                            
+----   -------    ------           -------                                                                                                                                                            
+nuget  2.8.5.208  https://onege... NuGet provider for the OneGet meta-package manager                                                                                                                 
+
+
+
+# 2. Install the Docker provider
+
+
+no output from this step
+
+
+
+# 3. Get latest version of the docker package
+
+
+
+PS C:\foo> Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+WARNING: A restart is required to enable the containers feature. Please restart your machine.
+
+Name                           Version          Source           Summary                                                                                                                                                            
+----                           -------          ------           -------                                                                                                                                                            
+Docker                         17.06.2-ee-16    DockerDefault    Contains Docker EE for use with Windows Server.   
+
+
+
+# 4. Ensure Hyper-V and related tools are added:
+
+
+
+no output
+
+
+
+# 5. Remove defender
+
+
+no output
+
+# 6. Restart the computer to enable docker and containers
+
+
+No otuput
+
+
+# 7. After reboot check docker service
+
+
+PS C:\foo> Get-Service -Name Docker   # check docker service
+
+Status   Name               DisplayName                           
+------   ----               -----------                           
+Running  Docker             Docker                                
+
+PS C:\foo> docker version             # check docker version
+Client:
+ Version:      17.06.2-ee-16
+ API version:  1.30
+ Go version:   go1.8.7
+ Git commit:   9ef4f0a
+ Built:        Thu Jul 26 16:43:19 2018
+ OS/Arch:      windows/amd64
+
+Server:
+ Engine:
+  Version:      17.06.2-ee-16
+  API version:  1.30 (minimum version 1.24)
+  Go version:   go1.8.7
+  Git commit:   9ef4f0a
+  Built:        Thu Jul 26 16:52:17 2018
+  OS/Arch:      windows/amd64
+  Experimental: false
+
+
+  
+#    8. Check Windows container feature
+
+
+
+PS C:\foo> Get-WindowsFeature -Name Containers
+
+
+Display Name       Name          Install State
+------------       ----          -------------
+[X] Containers     Containers        Installed
+
+
+
+
+#   9. Finally test docker works
+
+
+PS C:\foo> docker run --isolation=hyperv hello-world
+docker : Unable to find image 'hello-world:latest' locally
+At line:1 char:1
++ docker run --isolation=hyperv hello-world
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unable to find ...latest' locally:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+latest: 
+Pulling from library/hello-world
+bce2fbc256ea: 
+Already exists
+d4a9b16fd154: 
+Already exists
+5a6000eb1a8c: 
+Pulling fs layer
+56d4d021521d: Pulling fs layer
+56d4d021521d: 
+Verifying Checksum
+56d4d021521d: Download complete
+5a6000eb1a8c: 
+Verifying Checksum
+5a6000eb1a8c: Download complete
+5a6000eb1a8c: 
+Pull complete
+56d4d021521d: 
+Pull complete
+Digest: sha256:4b8ff392a12ed9ea17784bd3c9a8b1fa3299cac44aca35a85c90c5e3c7afacdc
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (windows-amd64, nanoserver-sac2016)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run a Windows Server container with:
+ PS C:\> docker run -it microsoft/windowsservercore powershell
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/engine/userguide/
+
