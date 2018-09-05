@@ -3,99 +3,87 @@
 # Run on CL1 and uses DC1, SRV1
 # Run as administrator
 
+# 0. Before you use this recipe, ensure the NuGet provider has been installed:
+Install-PackageProvider -Name NuGet -ForceBootstrap
+
+
 # 1. Review the commands available in the PowerShellGet module:
 Get-Command -Module PowerShellGet
 
-# 2. Update to the latest NuGet to get the PackageManagement module
-Install-PackageProvider -Name NuGet -Force -Verbose
 
-# 3. Check the version of the NuGet PackageProvider:
+# 2. View the NuGet PackageProvider version:
 Get-PackageProvider -Name NuGet |
     Select-Object -Property Version
 
-# 4. Update PowerShellGet:
-Install-Module -Name PowerShellGet -Force -Verbose
+# 3. View the current version of PowerShellGet
+Get-Module -Name PowerShellGet -ListAvailable
+
+# 4. Install PowerShellGet:
+Install-Module -Name PowerShellGet -Force
 
 # 5. Check the version of PowerShellGet:
-Get-Module -Name PowerShellGet |
-    Select-Object -ExpandProperty Version
+Get-Module -Name PowerShellGet -ListAvailable
 
 # 6. View the default PSGallery repository for PowerShellGet:
 Get-PSRepository
 
-# 7. Review the various providers in the repository:
-Find-PackageProvider |
-    Select-Object -Property Name, Source, Summary |
-        Format-Table -Wrap -AutoSize
-        
-# 8. View available providers with packages in PSGallery:
+# 7. Review the package providers in the PSGallery repository:
 Find-PackageProvider -Source PSGallery |
     Select-Object -Property Name, Summary |
-        Format-Table -Wrap -AutoSize
+        Format-Table -Wrap -autosize
 
-# 9. Use the Get-Command cmdlet to find cmdlets in PowerShellGet:
+# 8. Use the Get-Command cmdlet to find Find-* cmdlets in PowerShellGet:
 Get-Command -Module PowerShellGet -Verb Find
 
-# 10. Request all the commands in the PowerShellGet module, store them in a
-#     variable, and display the count as well:
+# 9. Request all the commands in the PowerShellGet module 
+#    and display the count:
 $Commands = Find-Command -Module PowerShellGet
 $CommandCount = $Commands.Count
 "$CommandCount commands available in PowerShellGet"
 
-# 11. Request all the available in the PowerShell Gallery
-$Modules = Find-Module 
+# 10. Request all the available modules in the PowerShell Gallery
+$Modules = Find-Module -Name *
 $ModuleCount=$Modules.Count
 "$ModuleCount Modules available in the PowerShell Gallery"
  
-# 12. Get available DSC resources
-$DSCResources      = Find-DSCResource
+# 11 Get DSC resources available in PSGallery
+$DSCResources = Find-DSCResource
 $DSCResourcesCount = $DSCResources.Count
 "$DSCResourcesCount DSCResources available in PowerShell Gallery"
 
-# 13. Find the available scripts 
-$Scripts = Find-Script
-$ScriptsCount = $Scripts.Count
-"$ScriptsCount Scripts available in PowerShell Gallery"
-
-# 14. When you discover a module you would like to simply install the module. This
-#     functionality is similar for Scripts, DSCResources, and so on:
-Get-Command -Module PowerShellGet -Verb Install
-
-# 15. Install the TreeSize module, as an example, or choose your own. As this is a
+# 12. Install the TreeSize module, as an example, or choose your own. As this is a
 #     public repository, Windows does not trust it by default, so you must approve the
 #     installation:
-Install-Module -Name TreeSize -Verbose
+Install-Module -Name TreeSize -Force
 
-# 16. If you choose to trust this repository, set the InstallationPolicy to Trusted,
-#     and you'll no longer need to confirm each installation: Use at your own risk, you are
-#     responsible for all software you install on servers you manage:
-Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-
-# 17. Review and test the commands in the module:
+# 13. Review and test the commands in the module:
 Get-Command -Module TreeSize
-Get-Help Get-TreeSize -Examples
-Get-TreeSize -Path $env:TEMP -Depth 1
+Get-Help Get-TreeSize
+Get-TreeSize -Path C:\Windows\System32\Drivers -Depth 1
 
-# 18. Remove the module just as easily:
-Uninstall-Module -Name TreeSize -Verbose
+# 14. Remove the module:
+Uninstall-Module -Name TreeSize
 
-# 19. Inspect inspect the code before installation
+# 15. Create a download folder:
 $NIHT = @{
   ItemType = 'Directory'
   Path     = "$env:HOMEDRIVE\DownloadedModules"
 }
 New-Item @NIHT
-$Path = "$env:HOMEDRIVE\DownloadedModules" 
-Save-Module -Name TreeSize -Path $Path -ErrorAction SilentlyContinue
-Get-ChildItem -Path $Path -Recurse
 
-# 20. Import the treesize module:
+# 16. Save module to the folder
+$Path = "$env:HOMEDRIVE\DownloadedModules" 
+Save-Module -Name TreeSize -Path $Path
+Get-ChildItem -Path $Path -Recurse | format-Table Fullname
+
+# 17. Import the treesize module:
 $ModuleFolder = "$env:HOMEDRIVE\downloadedModules\TreeSize"
 Get-ChildItem -Path $ModuleFolder -Filter *.psm1 -Recurse |
     Select-Object -ExpandProperty FullName -First 1 |
         Import-Module -Verbose
 
-# 21. When you are done with discovering the new module, you can remove it from
+# 18. When you are done with discovering the new module, you can remove it from
 #     your system:
 Remove-Module -Name TreeSize
 $ModuleFolder | Remove-Item -Recurse -Force
+
