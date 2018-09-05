@@ -23,7 +23,7 @@ New-Item $profile -Force
 '# Set an alias'                     | Out-File $Profile -Append
 'Set-Alias gh get-help'              | Out-File $Profile -Append
 # 0.4 View profile
-Nnotepad $Profile
+Notepad $Profile
 # 0.5 Update Help
 Update-Help -Force
 
@@ -34,7 +34,8 @@ Write-Output "On Host: [$(hostname)]"
 "Commands available before RSAT installed: [$CountBeforeRSAT]"
 
 # 2. Examine the types of commands returned by Get-Command
-$CommandsBeforeRSAT | Get-Member |
+$CommandsBeforeRSAT |
+  Get-Member |
     Select-Object -ExpandProperty TypeName -Unique
 
 
@@ -68,27 +69,29 @@ ElseIf ($CliVer -eq 1803 -and $Platform -eq 'X86')   {
 ElseIf ($CliVer -eq 1709 -and $platform -eq 'x86')   {
   $DLPath = $Lp1 + $lp170932}
 Else {"Version $cliver - unknown"; return}
+
+# 6. Display the download details
 "RSAT MSU file to be downloaded:"
 $DLPath
 
-# 6. Use BITS to download the file
+# 7. Use BITS to download the file
 $DLFile = 'C:\foo\Rsat.msu'
 Start-BitsTransfer -Source $DLPath -Destination $DLFile
 
-# 7. Check Authenticode signature
+# 8. Check Authenticode signature
 $Authenticatefile = Get-AuthenticodeSignature $DLFile
 If ($Authenticatefile.status -NE "Valid")
   {'File downloaded fails Authenticode check'}
 Else
   {'Downloaded file passes Authenticode check'}
 
-# 8. Install the RSAT tools
+# 9. Install the RSAT tools
 $WusaArguments = $DLFile + " /quiet"
 'Installing RSAT for Windows 10 - Please Wait...'
 $Path = 'C:\Windows\System32\wusa.exe' 
 Start-Process -FilePath $Path -ArgumentList $WusaArguments -Wait
 
-# 9. Now that RSAT features are installed, see what commands are available on the client:
+# 10. Now that RSAT features are installed, see what commands are available on the client:
 $CommandsAfterRSAT        = Get-Command -Module *
 $COHT1 = @{
   ReferenceObject  = $CommandsBeforeRSAT
@@ -98,8 +101,7 @@ $COHT1 = @{
 $DiffC = Compare-Object @COHT1
 "$($DiffC.count) Commands added with RSAT"
 
-  
-# 10. Check how many modules are now available:
+# 11. Check how many modules are now available:
 $ModulesAfterRSAT        = Get-Module -ListAvailable 
 $CountOfModulesAfterRsat = $ModulesAfterRSAT.count
 $COHT2 = @{
@@ -110,13 +112,15 @@ $DiffM = Compare-Object @COHT2
 "$($DiffM.count) Modules added with RSAT to CL1"
 "$CountOfModulesAfterRsat modules now available on CL1"
 
-# 11. Display modules added to CL1
+# 12. Display modules added to CL1
 "$($DiffM.count) modules added With RSAT tools to CL1"
 $DiffM | Format-Table InputObject -HideTableHeaders
 
+
 ###  NOW Add RSAT to Server
 
-# 12. Get Before CountS
+
+# 13. Get Before Counts
 $FSB1 = {Get-WindowsFeature}
 $FSRV1B = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB1
 $FSRV2B = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB1
@@ -134,8 +138,7 @@ $RFSDC1B = $FeaturesDC1B |
              Where-Object Installed |
                Where-Object Name -Match 'RSAT'
 
-
-# 13. Display results
+# 14. Display before counts
 "Before Installation of RSAT tools on DC1, SRV1"
 "$($IFDC1B.count) features installed on DC1"
 "$($RFSDC1B.count) RSAT features installed on DC1"
@@ -144,7 +147,10 @@ $RFSDC1B = $FeaturesDC1B |
 "$($IFSrv2B.count) features installed on SRV2"
 "$($RFSSRV2B.count) RSAT features installed on SRV2"
 
-# 14.  Just add the RSAT tools to Servers SRV1
+# 15.  Add the RSAT tools to Servers SRV1. SRV2, and DC1
+#      SRV2 is base Windows Server 2019 loaded
+#      SRV1 is base windows Server 2019 loaded withb a few tools
+#      DC1 is a server that is also a DC and a DNS Server.
 $InstallSB = {
   Get-WindowsFeature -Name *RSAT* | Install-WindowsFeature
 }
@@ -155,18 +161,19 @@ If ($I.RestartNeeded -eq 'Yes') {
   Restart-Computer -ComputerName SRV1 -Force -Wait -For PowerShell
 }
 
-# 15. Get Details of RSAT tools on SRV1 vs SRV2
+
+# 16. Get Details of RSAT tools on SRV1 vs SRV2
 $FSB2 = {Get-WindowsFeature}
 $FSRV1A = Invoke-Command -ComputerName SRV1 -ScriptBlock $FSB2
 $FSRV2A = Invoke-Command -ComputerName SRV2 -ScriptBlock $FSB2
 $IFSrv1A = $FSRV1A | Where-Object Installed
 $IFSrv2A = $FSRV2A | Where-Object Installed
-$RSFSrv1A = $SRV1A | Where-Object Installed | 
+$RSFSrv1A = $FSRV1A | Where-Object Installed | 
               Where-Object Name -Match 'RSAT'
 $RFSSrv2A = $FSRV2A | Where-Object Installed |
               Where-Object Name -Match 'RSAT'
 
-# 16. Display after effects
+# 17. Display after effects
 "After Installation of RSAT tools on SRV1"
 "$($IFSRV1A.count) features installed on SRV1"
 "$($RSFSrv1A.count) RSAT features installed on SRV1"
