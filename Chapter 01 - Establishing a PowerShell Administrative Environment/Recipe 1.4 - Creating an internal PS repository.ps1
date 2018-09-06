@@ -1,4 +1,4 @@
-# Recipe 1.5 - Creating an internal PowerShell repository
+# Recipe 1.4 - Creating an internal PowerShell repository
 
 https://kevinmarquette.github.io/2017-05-30-Powershell-your-first-PSScript-repository/
 
@@ -9,7 +9,13 @@ New-Item -Path $LPATH -ItemType Directory -ErrorAction SilentlyContinue
     Out-Null
 
 # 2. Share the folder for others
-New-SmbShare -Name RKRepo -Path $LPATH -Description 'RK Repo' -FullAccess 'Everyone'
+$SMBHT = @{
+  Name        = 'RKRepo' 
+  Path        = $LPATH 
+  Description = 'Reskit Repopository'
+  FullAccess  = 'Everyone'
+}
+New-SmbShare @SMBHT
 
 # 3. Create the repository as trusted
 $Path = '\\SRV1\RKRepo'
