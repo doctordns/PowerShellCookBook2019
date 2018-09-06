@@ -1,33 +1,58 @@
-# Recipe 1.5 - Creating an Internal PowerShell repository
+# Recipe 1.5 - Creating an internal PowerShell repository
 
-#  Step 1 through step 5 are done in your browser.
-#  These steps talke you through the GUI steps to get the Inedo repo.
+https://kevinmarquette.github.io/2017-05-30-Powershell-your-first-PSScript-repository/
 
-# 6. Open the PowerShell ISE or console, and register your new repository:
-$RepositoryURL = `
-             'http://localhost:81/nuget/MyPowerShellPackages/'
-Register-PSRepository -Name MyPowerShellPackages `
-                      -SourceLocation $RepositoryURL `
-                      -PublishLocation $RepositoryURL `
-                      -InstallationPolicy Trusted
 
-# 7. Publish a module you already have installed (Pester for example):
-# CHANGE to publis a module added in 1.4
+# 1. Create repository folder
+$LPATH = 'C:\RKRepo'
+New-Item -Path $LPATH -ItemType Directory -ErrorAction SilentlyContinue 
+    Out-Null
 
-Publish-Module -Name Pester -Repository MyPowerShellPackages `
-               -NuGetApiKey "Admin:Admin" `
-               -Force
+# 2. Share the folder for others
+New-SmbShare -Name RKRepo -Path $LPATH -Description 'RK Repo' -FullAccess 'Everyone'
 
-# 8. Download a module from PSGallery, save it to the C:\Foo folder, and
-#   publish to your new repository (for example, Carbon):
-Find-Module -Name Carbon -Repository PSGallery
-If (-Not (Test-Path -path 'c:\foo')) {
-    New-Item -ItemType Directory -Path 'C:\Foo'
+# 3. Create the repository as trusted
+$Path = '\\SRV1\RKRepo'
+$REPOHT = @{
+  Name               = 'RKRepo'
+  SourceLocation     = $Path
+  PublishLocation    = $Path
+  InstallationPolicy = 'Trusted'
 }
-Save-Module -Name Carbon -Path C:\foo
-Publish-Module -Path C:\Foo\Carbon `
-    -Repository MyPowerShellPackages `
-    -NuGetApiKey "Admin:Admin"
+Register-PSRepository @REPOHT
 
-# 9. Find all the modules available in your newly created and updated repository:
-Find-Module -Repository MyPowerShellPackages 
+# 4. View configured repositories
+Get-PSRepository
+
+# 5. Create a Hello World module folder
+New-Item C:\HW -ItemType Directory
+
+# 6. And Create a very simple module
+$HS = @"
+Function Get-HelloWorld {'Hello World'}
+Set-Alias GHW Get-HelloWorld
+"@
+$HS | Out-File C:\HW\HW.psm1
+
+# 7. Load and test the Module
+Import-Module -Name c:\hw -verbose
+GHW
+
+# 8. Create a Manifest for the new modle
+$NMHT = @{
+  Path              = 'C:\HW\HW.psd1' 
+  RootModule        = 'HW.psm1' 
+  Description       = 'Hello World module' 
+  Author            = 'DoctorDNS@Gmail.com' 
+  FunctionsToExport =  'Get-HelloWorld'
+}
+
+# 9. Publish the module:
+Publish-Module -Path C:\HW -Repository RKRepo
+
+# 10. See the results of publishing
+Find-Module -Repository RKRepo
+
+# 11. See repo folder
+Get-ChildItem -Path C:\RKRepo
+

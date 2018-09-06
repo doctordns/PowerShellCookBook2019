@@ -8,24 +8,26 @@
 #  0 - Setup CL1 for first time
 #      Run this the first time you use CL1     
 
-#0.1  Set execution Policy
+#   Set execution Policy
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
-# 0.2 Create Local Foo folder
+#   Create Local Foo folder
 New-Item c:\foo -ItemType Directory -Force
-# 0.3 Create profile
+#   Create basic profile and populate
 New-Item $profile -Force
-'# Profile file created by recipes'  | OUT-File $profile
-'# Profile for CL1'                  | OUT-File $profile -Append
-''                                   | OUT-File $profile -Append
-'#  Set location'                    | OUT-File $profile -Append
-'Set-Location -Path C:\Foo'          | OUT-File $profile -Append
-''                                   | OUT-File $profile -Append
-'# Set an alias'                     | Out-File $Profile -Append
-'Set-Alias gh get-help'              | Out-File $Profile -Append
-# 0.4 View profile
+'# Profile file created by recipe' | OUT-File $profile
+“# Profile for $(hostname)"        | OUT-File $profile -Append
+''                                 | OUT-File $profile -Append
+'#  Set location'                  | OUT-File $profile -Append
+'Set-Location -Path C:\Foo'        | OUT-File $profile -Append
+''                                 | OUT-File $profile -Append
+'# Set an alias'                   | Out-File $Profile -Append
+'Set-Alias gh get-help'            | Out-File $Profile -Append
+‘###  End of profile’              | Out-File $Profile -Append
+# Now view profile in Notepad
 Notepad $Profile
-# 0.5 Update Help
+# And update Help
 Update-Help -Force
+### 
 
 # 1. Get all available PowerShell commands
 $CommandsBeforeRSAT = Get-Command -Module *
