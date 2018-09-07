@@ -39,26 +39,28 @@ Get-Command -Module PowerShellGet -Verb Find
 #    and display the count:
 $Commands = Find-Command -Module PowerShellGet
 $CommandCount = $Commands.Count
-"$CommandCount commands available in PowerShellGet"
 
 # 10. Request all the available modules in the PowerShell Gallery
 $Modules = Find-Module -Name *
 $ModuleCount=$Modules.Count
-"$ModuleCount Modules available in the PowerShell Gallery"
  
-# 11 Get DSC resources available in PSGallery
+# 11. Get DSC resources available in PSGallery
 $DSCResources = Find-DSCResource
 $DSCResourcesCount = $DSCResources.Count
+
+# 12. Get DSC resources available in PSGallery
+"$CommandCount commands available in PowerShellGet"
+"$ModuleCount Modules available in the PowerShell Gallery"
 "$DSCResourcesCount DSCResources available in PowerShell Gallery"
 
-# 12. Install the TreeSize module, as an example, or choose your own. As this is a
+
+# 13. Install the TreeSize module, as an example, or choose your own. As this is a
 #     public repository, Windows does not trust it by default, so you must approve the
 #     installation:
 Install-Module -Name TreeSize -Force
 
 # 13. Review and test the commands in the module:
 Get-Command -Module TreeSize
-Get-Help Get-TreeSize
 Get-TreeSize -Path C:\Windows\System32\Drivers -Depth 1
 
 # 14. Remove the module:
