@@ -16,7 +16,7 @@ Get-ChildItem -Path Cert:\CurrentUser\my -CodeSigningCert |
 # 3. Create a simple script
 $Script = @"
  # Sample Script
- "Hello World!"
+ 'Hello World!'
  Hostname
 "@
 $Script | Out-File -FilePath c:\foo\signed.ps1
@@ -28,13 +28,15 @@ $SHT = @{
   FilePath    = 'C:\foo\signed.ps1'
 }
 Set-AuthenticodeSignature @SHT -verbose
+
+# 5. Look at script after signing
 Get-ChildItem -Path C:\foo\signed.ps1
 
-# 5. Test the signature
+# 6. Test the signature
 Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1 |
-    Format-List
+  Format-List
 
-# 6. Ensure certificate is trusted
+# 7. Ensure certificate is trusted
 
 $DestStoreName  = 'Root'
 $DestStoreScope = 'CurrentUser'
@@ -48,10 +50,15 @@ $DestStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadW
 $DestStore.Add($cert)
 $DestStore.Close()
 
-# 6. resign
-Set-AuthenticodeSignature @SHT 
-Get-ChildItem -Path C:\foo\signed.ps1
-Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1
+# 8. Resign WIth a trusted cert 
+Set-AuthenticodeSignature @SHT  | Out-Null
+
+# 9. Check the cert
+Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1 | Format-List
+
+
+
+
 
 
 # UnDo 
