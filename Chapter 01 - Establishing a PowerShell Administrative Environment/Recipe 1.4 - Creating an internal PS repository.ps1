@@ -1,12 +1,8 @@
 # Recipe 1.4 - Creating an internal PowerShell repository
 
-https://kevinmarquette.github.io/2017-05-30-Powershell-your-first-PSScript-repository/
-
-
 # 1. Create repository folder
 $LPATH = 'C:\RKRepo'
-New-Item -Path $LPATH -ItemType Directory -ErrorAction SilentlyContinue 
-    Out-Null
+New-Item -Path $LPATH -ItemType Directory | Out-Null
 
 # 2. Share the folder for others
 $SMBHT = @{

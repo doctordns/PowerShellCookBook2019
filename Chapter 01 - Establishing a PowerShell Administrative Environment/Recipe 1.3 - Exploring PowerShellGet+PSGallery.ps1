@@ -59,33 +59,27 @@ $DSCResourcesCount = $DSCResources.Count
 #     installation:
 Install-Module -Name TreeSize -Force
 
-# 13. Review and test the commands in the module:
+# 14. Review and test the commands in the module:
 Get-Command -Module TreeSize
 Get-TreeSize -Path C:\Windows\System32\Drivers -Depth 1
 
-# 14. Remove the module:
+# 15. Remove the module:
 Uninstall-Module -Name TreeSize
 
-# 15. Create a download folder:
+# 16. Create a download folder:
 $NIHT = @{
   ItemType = 'Directory'
   Path     = "$env:HOMEDRIVE\DownloadedModules"
 }
-New-Item @NIHT
+New-Item @NIHT | Out-Null
 
-# 16. Save module to the folder
+# 17. Download the module and save it to the folder
 $Path = "$env:HOMEDRIVE\DownloadedModules" 
 Save-Module -Name TreeSize -Path $Path
 Get-ChildItem -Path $Path -Recurse | format-Table Fullname
 
-# 17. Import the treesize module:
+# 18. Import the treesize module:
 $ModuleFolder = "$env:HOMEDRIVE\downloadedModules\TreeSize"
 Get-ChildItem -Path $ModuleFolder -Filter *.psm1 -Recurse |
     Select-Object -ExpandProperty FullName -First 1 |
         Import-Module -Verbose
-
-# 18. When you are done with discovering the new module, you can remove it from
-#     your system:
-Remove-Module -Name TreeSize
-$ModuleFolder | Remove-Item -Recurse -Force
-
