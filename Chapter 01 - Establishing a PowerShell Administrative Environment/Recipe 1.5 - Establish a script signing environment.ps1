@@ -7,7 +7,7 @@ $CHT = @{
   Type              = 'CodeSigning' 
   CertStoreLocation = 'Cert:\CurrentUser\My'
 }
-$cert = New-SelfSignedCertificate @CHT
+$Cert = New-SelfSignedCertificate @CHT
 
 # 2. Display newly created certificate
 Get-ChildItem -Path Cert:\CurrentUser\my -CodeSigningCert | 
@@ -27,7 +27,7 @@ $SHT = @{
   Certificate = $cert
   FilePath    = 'C:\foo\signed.ps1'
 }
-Set-AuthenticodeSignature @SHT -verbose
+Set-AuthenticodeSignature @SHT
 
 # 5. Look at script after signing
 Get-ChildItem -Path C:\foo\signed.ps1
@@ -54,7 +54,8 @@ $DestStore.Close()
 Set-AuthenticodeSignature @SHT  | Out-Null
 
 # 9. Check the cert
-Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1 | Format-List
+Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1 | 
+  Format-List
 
 
 
