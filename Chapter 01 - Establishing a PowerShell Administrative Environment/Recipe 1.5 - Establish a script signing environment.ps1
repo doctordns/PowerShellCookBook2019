@@ -37,7 +37,7 @@ Get-AuthenticodeSignature -FilePath C:\foo\signed.ps1 |
   Format-List
 
 # 7. Ensure certificate is trusted
-
+# Note ugly construct in opening the store!
 $DestStoreName  = 'Root'
 $DestStoreScope = 'CurrentUser'
 $Type   = 'System.Security.Cryptography.X509Certificates.X509Store'
@@ -46,11 +46,13 @@ $MHT = @{
   ArgumentList  = ($DestStoreName, $DestStoreScope)
 }
 $DestStore = New-Object  @MHT
-$DestStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+$DestStore.Open(
+  [System.Security.Cryptography.X509Certificates.OpenFlags]::
+    ReadWrite)
 $DestStore.Add($cert)
 $DestStore.Close()
 
-# 8. Resign WIth a trusted cert 
+# 8. Resign With a trusted cert 
 Set-AuthenticodeSignature @SHT  | Out-Null
 
 # 9. Check the cert
