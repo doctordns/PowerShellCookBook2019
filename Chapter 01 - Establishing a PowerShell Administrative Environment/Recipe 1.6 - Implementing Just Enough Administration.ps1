@@ -98,7 +98,12 @@ New-PSSessionConfigurationFile @PSCHT
 Test-PSSessionConfigurationFile -Path C:\foo\RKDnsAdmins.pssc 
 
 # 7. Register the JEA Session definition
-Register-PSSessionConfiguration -Path C:\foo\RKDnsAdmins.pssc -Name 'RKDnsAdmins' -Force 
+$SCHT = @{
+Path  = 'C:\foo\RKDnsAdmins.pssc'
+Name  = 'RKDnsAdmins' 
+Force =  $true 
+}
+Register-PSSessionConfiguration @SCHT
 
 # 8. Check what the user can do:
 Get-PSSessionCapability -ConfigurationName rkdnsadmins -Username 'reskit\jerryg' 

@@ -1,0 +1,53 @@
+# Recipe 3.4 - Creating a group policy object
+
+# 1. create Group Policy object
+
+
+    NO OUTPUT
+
+
+# 2. Ensure just computer settings are enabled
+
+
+  NO Output
+
+# 3. Configure the policy with two settings
+
+
+  NO OUTPUT
+
+
+# 4. Create a screen saver GPO And set status and a comment
+
+  
+  NO OUTPUT
+
+
+# 5. Set a registry value
+
+  
+  NO OUTPUT
+
+# 6. Assign the GPOs to the IT OU
+
+  no output
+
+
+# 7. Display the GPOs in the domain
+
+
+PS C:\foo> Get-GPO -All -Domain Reskit.Org |
+  Sort -Property DisplayName |
+    Format-Table -Property Displayname, Description, GpoStatus
+
+DisplayName                       Description                      GpoStatus
+-----------                       -----------                      ---------
+Default Domain Controllers Policy                         AllSettingsEnabled
+Default Domain Policy                                     AllSettingsEnabled
+ITPolicy                          IT GPO                UserSettingsDisabled
+Screen Saver Time Out             15 minute timeout ComputerSettingsDisabled
+
+
+
+
+
