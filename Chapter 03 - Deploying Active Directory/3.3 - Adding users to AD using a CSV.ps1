@@ -1,4 +1,4 @@
-﻿# Recipe 3.3 - Adding Users to Active Directoryt using a CSV File
+﻿# Recipe 3.3 - Adding Users to Active Directory using a CSV File
 
 # 0. Create CSV
 $CSVDATA = @'
