@@ -1,6 +1,6 @@
 ﻿# Recipe 3.4 - Creating a group policy object
 
-# 1. create Group Policy object
+# 1. Create Group Policy object
 $Pol = 
   New-GPO -Name ITPolicy -Comment "IT GPO" -Domain Reskit.Org
 
