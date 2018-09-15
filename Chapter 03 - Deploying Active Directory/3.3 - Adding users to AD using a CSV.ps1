@@ -14,9 +14,9 @@ $CSVDATA | Out-File -FilePath C:\Foo\Users.Csv
 #    want to add to AD:
 $Users = Import-CSV -Path C:\Foo\Users.Csv | 
   Sort-Object  -Property Alias
-$users | Sort-Object -Property Alias |FT
+$users | Sort-Object -Property Alias |Format-Table
 
-# 2. Add the users using the CSV:
+# 2. Add the users using the CSV
 ForEach ($User in $Users) {
 #    Create a hash table of properties to set on created user
 $Prop = @{}
@@ -42,7 +42,7 @@ New-ADUser @Prop -Path 'OU=IT,DC=Reskit,DC=ORG' -Enabled:$true
 
 
 
-# Remove the users created in the recipe
+### Remove the users created in the recipe
 
 $users = Import-Csv C:\foo\users.csv
 foreach ($User in $Users)

@@ -1,6 +1,6 @@
 ﻿# Recipe 3.5 - Reporting on AD Users
 
-# 1. Define the function Get-ReskitUser
+# 1. Define a function Get-ReskitUser
 #    The function returns objects related to users in reskit.org
 Function Get-ReskitUser {
 # Get PDC Emulator DC
@@ -26,7 +26,7 @@ Foreach ($ADUser in $ADUsers) {
 # 2. Get the users
 $RKUsers = Get-ReskitUser
 
-# 3. Build the report header:
+# 3. Build the report header
 $RKReport = ''
 $RkReport += "*** Reskit.Org AD Report`n"
 $RKReport += "*** Generated [$(Get-Date)]`n"
@@ -48,7 +48,7 @@ $RkReport += $RKUsers |
             Format-Table -Property SamAccountName,lastlogondate |
                 Out-String
 
-# 6. Users with high invalid password attempts:
+# 6. Users with high invalid password attempts
 #
 $RKReport += "`n*** High Number of Bad Password Attempts`n"
 $RKReport += $RKUsers | Where-Object BadPwdCount -ge 5 |

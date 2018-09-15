@@ -23,7 +23,7 @@ $NewUserHT.Name              = 'Rebecca Tanner'
 $NewUserHT.DisplayName       = 'Rebecca Tanner (IT)'
 New-ADUser @NewUserHT
 
-# 3. Create an OU and move users into it
+# 3. Create an OU for IT and move users into it
 $OUHT = @{
     Name        = 'IT'
     DisplayName = 'Reskit IT Team'

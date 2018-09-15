@@ -1,14 +1,14 @@
 ﻿# Recipe 3.5 - Finding expired computers and disabled users in AD
 
-# 1.Build the report header:
+# 1.Build the report header
 $RKReport = ''
 $RkReport += "*** Reskit.Org AD Daily AD report`n"
 $RKReport += "*** Generated [$(Get-Date)]`n"
 $RKReport += "***********************************`n`n"
 
-# 2. Report on computer accounts that have not logged in the past month:
+# 2. Report on computer accounts that have not logged in the past month
 $RkReport += "*** Machines not logged on in past month`n"
-$AMonthAgo = (Get-Date)#.AddMonths(-1)
+$AMonthAgo = (Get-Date).AddMonths(-1)
 $ADCHT2 = @{
   Properties = 'lastLogonDate'
   Filter     = 'lastLogonDate -lt $AMonthAgo'
