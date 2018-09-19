@@ -32,7 +32,7 @@ Update-Help -Force
 # 1. Get all available PowerShell commands
 $CommandsBeforeRSAT = Get-Command -Module *
 $CountBeforeRSAT    = $CommandsBeforeRSAT.Count
-Write-Output "On Host: [$(hostname)]"
+"On Host: [$(hostname)]"
 "Commands available before RSAT installed: [$CountBeforeRSAT]"
 
 # 2. Examine the types of commands returned by Get-Command
@@ -43,9 +43,9 @@ $CommandsBeforeRSAT |
 
 # 3. Get the collection of PowerShell modules and a count of 
 #    modules before adding the RSAT tools
-$ModulesBeforeRSAT = Get-Module -ListAvailable 
+$ModulesBefore = Get-Module -ListAvailable 
 $CountOfModulesBeforeRSAT = $ModulesBeforeRSAT.count
-"$CountOfModulesBeforeRSAT modules installed prior to adding RSAT"
+"$CountOfModulesBefore modules installed prior to adding RSAT"
 
 # 4. Get Windows Client Version and Hardware platform
 $Key      = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
