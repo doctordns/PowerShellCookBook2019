@@ -12,12 +12,13 @@ Restart-Computer -Computername CL1 -Force
 
 # 1. From CL1, install the Hyper-V feature on HV1, HV2
 $Sb = {
-    Install-WindowsFeature -Name Hyper-V IncludeManagementTools}
+  Install-WindowsFeature -Name Hyper-V IncludeManagementTools
+}
 Invoke-Command -ComputerName HV1, HV2 -ScriptBlock $Sb
 
 # 2. Reboot the servers to complete the installation
-
 Restart-Computer -ComputerName HV1, HV2 -Force -Wait -For -PowerShell
+
 # 3. Create and set the location for VMs and VHDs on HV1 and HV2
 #  then view results
 $Sb = {
@@ -49,11 +50,12 @@ Set-VMHost -CimSession HV1, HV2 -ResourceMeteringSaveInterval
 Write-Host -Objject $RMInterval
 
 # 8. Review key VMHost settings:
-$VMHT = @{Property = 'Name, MemoryCapacity,
-                          Virtual * Path,
-                          NumaSpanningEnabled,
-                          EnableEnhancedSessionMode,
-                          ResourceMeteringSaveInterval'
+$VMHT = @{
+  Property = 'Name, MemoryCapacity,
+              Virtual * Path,
+              NumaSpanningEnabled,
+              EnableEnhancedSessionMode,
+              ResourceMeteringSaveInterval'
 }
 Get-VMHost -ComputerName HV1, HV2 |
-    Format-List @VMHT
+  Format-List @VMHT
