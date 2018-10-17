@@ -13,25 +13,26 @@ $WSUSServer.GetComputerTargets() |
     Format-Table -Property FullDomainName, IPAddress, Last*
  
 
-# 3  Search the WSUS server for updates with titles containing Windows Server 2016
-#    that are classified as security updates, newest to oldest, and store them in a
-#    variable. Examine the variable using Get-Member, reviewing the properties and
-#    methods of the Microsoft.UpdateServices.Internal.BaseApi.Update
-#    object:
-$SecurityUpdates = $WSUSServer.SearchUpdates( `
-    'Windows Server 2016') |
-        Where-Object -Property UpdateClassificationTitle `
-             -eq 'Security Updates' |
-                  Sort-Object -Property CreationDate -Descending
-$SecurityUpdates | sort title |ft title, description
+# 3  Search the WSUS server for updates with titles containing Windows Server 2016.
+#    Then pull out the security updates amd sort by creation date:
 
-# 4. View the matching updates:
-$SecurityUpdates |
-    Select-Object -Property CreationDate, Title
+$ST = 'Windows Server 2016'
+$SU = 'Security Updates'
+$SecurityUpdates = $WSUSServer.SearchUpdates($ST) |
+  Where-Object UpdateClassificationTitle -eq $SU |
+    Sort-Object -Property CreationDate -Descending
+
+
+# 4. View the matching updates (first 10).
+$SecurityUpdates | 
+  Sort-Object -Property Title |
+    Select-Object -First 10 |
+      Format-Table -Property Title, Description
+      
 
 # 5. Select one of the updates to approve based on the KB article ID:
 $SelectedUpdate = $SecurityUpdates |
-    Where-Object KnowledgebaseArticles -eq 4019472
+    Where-Object KnowledgebaseArticles -eq 3194798
 
 # 6. Define the computer target group where you will approve this update:
 $DCTargetGroup = $WSUSServer.GetComputerTargetGroups() |
@@ -40,10 +41,9 @@ $DCTargetGroup = $WSUSServer.GetComputerTargetGroups() |
 # 7. Approve the update for installation in the target group:
 $SelectedUpdate.Approve('Install',$DCTargetGroup)
 
-# 8. Select one of the updates to decline based on the KB article ID:
+# 8. Select one of the updates to decline based on a KB article ID:
 $DeclinedUpdate = $SecurityUpdates |
-Where-Object -Property KnowledgebaseArticles -eq 4020821
+  Where-Object -Property KnowledgebaseArticles -eq 4020821
 
 # 9. Decline the update:
 $DeclinedUpdate.Decline($DCTargetGroup)
-
