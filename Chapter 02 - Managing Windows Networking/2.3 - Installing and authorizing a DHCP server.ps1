@@ -1,17 +1,21 @@
-﻿# Recipe 8.3 - Installing and authorizing a DHCP server.
+﻿# Recipe 2.3 - Installing and authorizing a DHCP server
+#
 # Run on DC1
 
 # 1. Install the DHCP Feature
-Install-WindowsFeature -Name DHCP `
-                   -IncludeManagementTools
+Install-WindowsFeature -Name DHCP -IncludeManagementTools
 
 # 2. Add the DHCP server's security groups
 Add-DHCPServerSecurityGroup -Verbose
 
 # 3. Let DHCP know it's all configured
-Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\ServerManager\Roles\12 `
-      -Name ConfigurationState `
-      -Value 2
+$RegHT = @{
+Path  = 'HKLM:\SOFTWARE\Microsoft\ServerManager\Roles\12'
+Name  = 'ConfigurationState'
+Value = 2
+}
+Set-ItemProperty @RegHT
+
 
 # 4. Authorise the DHCP server in AD
 Add-DhcpServerInDC -DnsName DC1.Reskit.Org
