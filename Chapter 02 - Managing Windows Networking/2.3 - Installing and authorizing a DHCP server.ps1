@@ -15,7 +15,7 @@ Name  = 'ConfigurationState'
 Value = 2
 }
 Set-ItemProperty @RegHT
-
+d
 
 # 4. Authorise the DHCP server in AD
 Add-DhcpServerInDC -DnsName DC1.Reskit.Org

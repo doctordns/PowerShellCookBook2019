@@ -17,10 +17,11 @@ Get-DhcpServerv4Scope -ComputerName DC1.Reskit.Org
 
 # 3. Set Option Values
 $OHT = @{
-  DnsDomain = 'eskit.Org'
+  ComputerName = 'DC1.Reskit.Org'
+  DnsDomain = 'Reskit.Org'
   DnsServer = '10.10.10.10'
 }
-Set-DhcpServerV4OptionValue $OHT 
+Set-DhcpServerV4OptionValue @OHT 
 
 # 4. Get options set
 Get-DhcpServerv4OptionValue -ComputerName DC1.Reskit.Org
