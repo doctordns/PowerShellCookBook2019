@@ -1,4 +1,7 @@
-﻿# Recipe 8.3 - Converting IP address from static to DHCP
+﻿# Recipe 2.5 - Converting IP address from static to DHCP
+#
+# Run on SRV2
+
 
 # 1.Get the existing IP address information
 $IPType = 'IPv4'
@@ -8,7 +11,6 @@ $Interface = $Adapter |
     Get-NetIPInterface -AddressFamily $IPType
 $IfIndex = $Interface.ifIndex
 $IfAlias = $Interface.Interfacealias
-Write-Output -InputObject $IFAlias
 Get-NetIPAddress -InterfaceIndex $Ifindex -AddressFamily $IPType
 
 # 2. Set the interface to get its address from DHCP:
