@@ -1,4 +1,4 @@
-﻿#  Recipe 4-3 - Changing the spool directory.
+﻿#  Recipe 7.3 - Changing the spool directory.
 
 # 1. Load the System.Printing namespace and classes:
 Add-Type -AssemblyName System.Printing
@@ -9,19 +9,30 @@ $Permissions =
           AdministrateServer
 
 # 3. Create a PrintServer object with the required permissions:
-$Ps = New-Object `
-       -TypeName System.Printing.PrintServer `
-       -ArgumentList $Permissions
+$NOHT = @{
+  TypeName     = 'System.Printing.PrintServer'
+  ArgumentList = $Permissions
+}
+$PS = New-Object @NOHT
 
 
-# 4. Update the default spool folder path:
-$Newpath = 'C:\Spool' # NB this should exist!
-$Ps.DefaultSpoolDirectory = $Newpath
+# 4. Create a new spool path:
+$NIHT = @{
+Path        = 'C:\SpoolPath'
+ItemType    = 'Directory'
+Force       = $true
+ErrorAction = 'SilentlyContinue'
+}
+New-Item @NIHT | Out-Null 
 
-# 5. Commit the change:
+# 5 Update the default spool folder path:
+$Newpath = 'C:\SpoolPath'
+$PS.DefaultSpoolDirectory = $Newpath
+
+# 6. Commit the change:
 $Ps.Commit()
 
-# 6. Restart the Spooler to accept the new folder:
+# 7. Restart the Spooler to accept the new folder:
 Restart-Service -Name Spooler
 
 # 7. Once the Spooler has restarted, view the results:
@@ -47,5 +58,4 @@ Start-Service -Name Spooler
 
 # 4. View the results:
 New-Object -TypeName System.Printing.PrintServer |
-    Format-Table -Property Name,
-                           DefaultSpoolDirectory
+    Format-Table -Property Name, DefaultSpoolDirectory

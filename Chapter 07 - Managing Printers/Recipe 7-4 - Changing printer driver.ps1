@@ -1,14 +1,17 @@
 ﻿# Recipe 4-4 Change Printer Driver
 
 # 1. Add the print driver for the new printing device:
-Add-PrinterDriver -Name "HP LaserJet 9000 PS Class Driver"
+$M2 = 'Xerox WorkCentre 6515 PCL6'
+Add-PrinterDriver -Name $M2
 
 # 2. Get the Sales group printer object and store it in $Printer:
-$Printer = Get-Printer -Name "SGCP1"
+$Printern = 'SalesPrinter1'
+$Printer = Get-Printer -Name $Printern
 
 # 3. Update the driver using the Set-Printercmdlet:
-Set-Printer -Name $Printer.Name `
-            -DriverName "HP LaserJet 9000 PS Class Driver"
+$Printer | Set-Printer -DriverName $M2
 
-# 4. Observe the results:
-Get-Printer SGCP1
+# 4. Observe the result
+Get-Printer -Name $Printern | 
+  Format-Table -Property Name, DriverName, PortName, 
+                Published,Shared
