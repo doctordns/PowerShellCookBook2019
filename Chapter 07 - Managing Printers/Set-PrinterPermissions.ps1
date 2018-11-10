@@ -92,6 +92,8 @@
               the user.    
 #>
 
+Function Set-PrinterPermission {
+
 param(
         [parameter(Position=0,HelpMessage='Server sAMAccountName on which to modify permissions.')]`
     [string]$ServerName=".",
@@ -120,11 +122,11 @@ param(
 
 #included for clairty
 Set-Variable AccessMasks -Option ReadOnly -Force -Value @{
-    "ManagePrinters" = 983052;
-    "ManageDocuments" = 983088;
-    "Print" = 131080;
-    "TakeOwnership" = 524288;
-    "ReadPermissions" = 131072;
+    "ManagePrinters"    = 983052;
+    "ManageDocuments"   = 983088;
+    "Print"             = 131080;
+    "TakeOwnership"     = 524288;
+    "ReadPermissions"   = 131072;
     "ChangePermissions" = 262144}
     
 Set-Variable AccessTypes -Option ReadOnly -Force -Value @{
@@ -132,32 +134,32 @@ Set-Variable AccessTypes -Option ReadOnly -Force -Value @{
     "Deny" = 1}
     
 Set-Variable AceFlags -Option ReadOnly -Force -Value @{ 
-    "OBJECT_INHERIT_ACE" = 0x0001;
-    "CONTAINER_INHERIT_ACE" = 0x0002;
+    "OBJECT_INHERIT_ACE"       = 0x0001;
+    "CONTAINER_INHERIT_ACE"    = 0x0002;
     "NO_PROPAGATE_INHERIT_ACE" = 0x0004;
-    "INHERIT_ONLY_ACE" = 0x0008;
-    "INHERITED_ACE" = 0x0010}
+    "INHERIT_ONLY_ACE"         = 0x0008;
+    "INHERITED_ACE"            = 0x0010}
 
 Set-Variable SDControlFlags -Option ReadOnly -Force -Value @{
     "SE_DACL_AUTO_INHERIT_REQ" = 0x0100;
-    "SE_DACL_AUTO_INHERITED" = 0x0400;
-    "SE_DACL_DEFAULTED" = 0x0008;
-    "SE_DACL_PRESENT" = 0x0004;
-    "SE_DACL_PROTECTED" = 0x1000;
-    "SE_GROUP_DEFAULTED" = 0x0002;
-    "SE_OWNER_DEFAULTED" = 0x0001;
-    "SE_RM_CONTROL_VALID" = 0x4000;
+    "SE_DACL_AUTO_INHERITED"   = 0x0400;
+    "SE_DACL_DEFAULTED"        = 0x0008;
+    "SE_DACL_PRESENT"          = 0x0004;
+    "SE_DACL_PROTECTED"        = 0x1000;
+    "SE_GROUP_DEFAULTED"       = 0x0002;
+    "SE_OWNER_DEFAULTED"       = 0x0001;
+    "SE_RM_CONTROL_VALID"      = 0x4000;
     "SE_SACL_AUTO_INHERIT_REQ" = 0x0200;
-    "SE_SACL_AUTO_INHERITED" = 0x0800;
-    "SE_SACL_DEFAULTED" = 0x0008;
-    "SE_SACL_PRESENT" = 0x0010;
-    "SE_SACL_PROTECTED" = 0x2000;
-    "SE_SELF_RELATIVE" = 0x8000}
+    "SE_SACL_AUTO_INHERITED"   = 0x0800;
+    "SE_SACL_DEFAULTED"        = 0x0008;
+    "SE_SACL_PRESENT"          = 0x0010;
+    "SE_SACL_PROTECTED"        = 0x2000;
+    "SE_SELF_RELATIVE"         = 0x8000}
 
 Set-Variable SecDescriptorReturnCodes -Option ReadOnly -Force -Value @{
-    "Success"= 0;
-    "Access Denied"= 2;
-    "Unknown Error"= 8;
+    "Success"           = 0;
+    "Access Denied"     = 2;
+    "Unknown Error"     = 8;
     "The user does not have adequate privileges to execute the method"= 9;
     "A parameter specified in the method call is invalid"= 21}
 
@@ -166,14 +168,16 @@ Set-Variable SecDescriptorReturnCodes -Option ReadOnly -Force -Value @{
 function Get-Win32_Printers(){
     param(
         [string]$ServerSamAccount,
-        [string]$PrinterName="")
+        [string]$PrinterName='')
+
+Write-Verbose 'In Get-Win32Printers'
 
     [System.Management.ManagementBaseObject[]]$win32Printers = @()
     
     $win32Printers
 
     try{
-        if($PrinterName -ne ""){
+        if($PrinterName -ne ''){
             $win32Printers += Get-WmiObject Win32_Printer -ComputerName $ServerSamAccount -Filter "Name='$PrinterName'"
         }
         else{
@@ -415,5 +419,4 @@ function Set-PrinterPermissions(){
 
 #Start
 Set-PrinterPermissions
-
-
+}

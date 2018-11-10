@@ -54,10 +54,10 @@ Add-Printer @PRHT
 # 8. Share the printer:
 Set-Printer -Name SalesPrinter1 -Shared $True
 
-# 6. Review what you have done:
+# 9. Review what you have done:
 Get-PrinterPort -Name SalesPP |
-    Format-Table -Property Name, Description,
-                           PrinterHostAddress, PortNumber -Autosize
+    Format-Table -Autosize -Property Name, Description,
+                           PrinterHostAddress, PortNumber
 Get-PrinterDriver -Name xerox* |
     Format-Table -Property Name, Manufacturer,
                            DriverVersion, PrinterEnvironment
