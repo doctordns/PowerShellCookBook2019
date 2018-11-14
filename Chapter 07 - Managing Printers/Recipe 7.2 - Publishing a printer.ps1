@@ -11,11 +11,8 @@ $Printer | Format-Table -Property Name, Published
 
 # 3. Publish and share the printer to AD:
 $Printer | Set-Printer -Location '10th floor 10E4'
-$Printer | Set-Printer -Shared $true -ShareName SalesPrinter1
+$Printer | Set-Printer -Shared $true -Published $true
 
 # 4. View the updated publication status:
 Get-Printer -Name SalesPrinter1 |
     Format-Table -Property Name, Location, Drivername,Published
-
-# 5. See shared printer status
-Get-SmbShare -Name SalesPrinter1
