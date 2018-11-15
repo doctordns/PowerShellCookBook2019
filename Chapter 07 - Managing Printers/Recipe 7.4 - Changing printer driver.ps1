@@ -14,4 +14,4 @@ $Printer | Set-Printer -DriverName $M2
 # 4. Observe the result
 Get-Printer -Name $Printern | 
   Format-Table -Property Name, DriverName, PortName, 
-                Published,Shared
+                Published, Shared
