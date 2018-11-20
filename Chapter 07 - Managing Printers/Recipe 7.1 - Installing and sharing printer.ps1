@@ -64,3 +64,13 @@ Get-PrinterDriver -Name xerox* |
 Get-Printer -ComputerName PSRV -Name SalesPrinter1 |
     Format-Table -Property Name, ComputerName,
                            Type, PortName, Location, Shared
+
+
+
+
+# undo things
+
+Remove-printer SalesPrinter1
+net stop spooler;net start spooler
+Remove-PrinterPort 'SalesPP' 
+
