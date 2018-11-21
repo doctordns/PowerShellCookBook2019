@@ -1,61 +1,64 @@
 # Recipe 11-1 - Installing and configuring Hyper-V
 # Run on CL1
 
-# 0.  Add Windows optional feature for CL1
-$FHT = @{
-    FeatureName = 'Microsoft-Hyper-V-All'
-    Online      = $true
-    NoRestart   = $true
-}
-Enable-WindowsOptionalFeature @FHT
-Restart-Computer -Computername CL1 -Force
-
 # 1. From CL1, install the Hyper-V feature on HV1, HV2
 $Sb = {
-  Install-WindowsFeature -Name Hyper-V IncludeManagementTools
+  Install-WindowsFeature -Name Hyper-V -IncludeManagementTools
 }
 Invoke-Command -ComputerName HV1, HV2 -ScriptBlock $Sb
 
 # 2. Reboot the servers to complete the installation
-Restart-Computer -ComputerName HV1, HV2 -Force -Wait -For -PowerShell
+Restart-Computer -ComputerName HV1, HV2 -Force 
 
-# 3. Create and set the location for VMs and VHDs on HV1 and HV2
+# 3. Create a PSSession with both HV Servers (after reboot)
+$S = New-PSSession HV1, HV2
+
+# 4. Create and set the location for VMs and VHDs on HV1 and HV2
 #  then view results
 $Sb = {
-    New-Item -Path H:\Vm -ItemType Directory -Force |
+    New-Item -Path C:\Vm -ItemType Directory -Force |
         Out-Null
-    New-Item -Path H:\Vm\Vhds -ItemType Directory -Force |
+    New-Item -Path C:\Vm\Vhds -ItemType Directory -Force |
         Out-Null
-    New-Item -Path H:\Vm\VMs -ItemType Directory -force |
+    New-Item -Path C:\Vm\VMs -ItemType Directory -force |
         Out-Null
-    Get-ChildItem -Path H:\Vm }
-Invoke-Command -ComputerName HV1, HV2 -ScriptBlock $Sb
+    Get-ChildItem -Path C:\Vm }
+Invoke-Command -ScriptBlock $Sb -Session $S
 
-# 4. Set default paths for Hyper-V VM hard disks and
+# 5. Set default paths for Hyper-V VM hard disks and
 #    VM configuration information
-$VMs  = 'H:\Vm\Vhds'
-$VHDs = 'H:\Vm\VMs\Managing Hyper-V'
-Set-VMHost -ComputerName HV1, HV2 -VirtualHardDiskPath $VMs
-Set-VMHost -ComputerName HV1, HV2 -VirtualMachinePath $VHDs
+$SB = {
+  $VMs  = 'C:\Vm\Vhds'
+  $VHDs = 'C:\Vm\VMs\Managing Hyper-V'
+  Set-VMHost -ComputerName Localhost -VirtualHardDiskPath $VMs
+  Set-VMHost -ComputerName Localhost -VirtualMachinePath $VHDs
+}
+Invoke-Command -ScriptBlock $SB -Session $S
 
 # 5. Setup NUMA spanning
-Set-VMHost -ComputerName HV1, HV2 -NumaSpanningEnabled $true
+$SB = {
+  Set-VMHost -NumaSpanningEnabled $true
+}
+Invoke-Command -ScriptBlock $SB -Session $S
 
 # 6. Set up EnhancedSessionMode
-Set-VMHost -ComputerName HV1, HV2 -EnableEnhancedSessionMode $true
+$SB = {
+ Set-VMHost -EnableEnhancedSessionMode $true
+}
+Invoke-Command -ScriptBlock $SB -Session $S
 
 # 7. Setup host resource metering on HV1, HV2
-$RMInterval = New-TimeSpan -Hours 0 -Minutes 15
-Set-VMHost -CimSession HV1, HV2 -ResourceMeteringSaveInterval
-Write-Host -Objject $RMInterval
+$SB = {
+ $RMInterval = New-TimeSpan -Hours 0 -Minutes 15
+  Set-VMHost -ResourceMeteringSaveInterval $RMInterval
+}
+Invoke-Command -ScriptBlock $SB -Session $S
+
 
 # 8. Review key VMHost settings:
-$VMHT = @{
-  Property = 'Name, MemoryCapacity,
-              Virtual * Path,
-              NumaSpanningEnabled,
-              EnableEnhancedSessionMode,
-              ResourceMeteringSaveInterval'
-}
-Get-VMHost -ComputerName HV1, HV2 |
-  Format-List @VMHT
+$SB = {
+  Get-VMHost 
+ }
+$P = 'Name', 'V*Path','Numasp*', 'Ena*','RES*'
+Invoke-Command -Scriptblock $SB -Session $S |
+  Format-Table -Property $P
