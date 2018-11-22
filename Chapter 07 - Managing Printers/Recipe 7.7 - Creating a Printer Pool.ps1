@@ -9,6 +9,7 @@ Add-PrinterPort -Name $P -PrinterHostAddress 10.10.10.62
 $P1='SalesPP'
 $P2='SalesPP2'
 rundll32.exe printui.dll,PrintUIEntry /Xs /n $p Portname $P1,$P2
+
 # 3. View resultant details:
 Get-Printer $P | 
    Format-Table -Property Name, Type, DriverName, PortName
