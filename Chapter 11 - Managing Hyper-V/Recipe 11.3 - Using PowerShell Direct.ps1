@@ -1,4 +1,4 @@
-# Recipe 11-2 - Using PS Direct with Hyper-V
+# Recipe 11.3 - Using PS Direct with Hyper-V
 
 # 1. Create a credential object for ReskitAdministrator:
 $RKAn = 'Administrator'
@@ -12,13 +12,24 @@ Get-VM -Name PSDirect
 
 # 3. Invoke a command on the VM, specifying VM name:
 $SBHT = @{
-    VMName      = 'PSDirect'
-    Credential  = $RKCred
-    ScriptBlock = {hostname}
+  VMName      = 'PSDirect'
+  Credential  = $RKCred
+  ScriptBlock = {hostname}
 }
 Invoke-Command @SBHT
 
 # 4. Invoke a command based on VMID:
+$VMID = (Get-VM -VMName PSDirect).VMId.Guid
+$ICMHT = @{
+  VMid        = $VMID 
+  Credential  = $RKCred  
+  ScriptBlock = {hostname}
+}
+Invoke-Command @ICMHT
+
+
+
+
 $VMID = (Get-VM -VMName PSDirect).VMId.Guid
 Invoke-Command -VMid $VMID -Credential $RKCred  -ScriptBlock {hostname}
 
