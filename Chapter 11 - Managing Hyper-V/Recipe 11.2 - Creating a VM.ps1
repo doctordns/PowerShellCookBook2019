@@ -11,7 +11,7 @@ $ISOPath     = 'C:\builds\en_windows_server_2019_x64_dvd_4cb967d8.iso'
 New-VM -Name $VMname -Path $VMLocation -MemoryStartupBytes 1GB
 
 # 3. Create a virtual disk file for the VM:
-New-VHD -Path $VhdPath -SizeBytes 128GB -Dynamic
+New-VHD -Path $VhdPath -SizeBytes 128GB -Dynamic | Out-Null
 
 # 4. Add the virtual hard drive to the VM:
 Add-VMHardDiskDrive -VMName $VMname -Path $VhdPath
