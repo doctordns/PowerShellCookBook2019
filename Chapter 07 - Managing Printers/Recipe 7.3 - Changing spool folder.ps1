@@ -57,7 +57,7 @@ $NIHT2 = @{
 }
 New-Item  @NIHT2 | Out-Null
 
-# 11. Set the spooler folder in the registry
+# 11. Create the spooler folder and configure in the registry
 $RPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\' +
          'Print\Printers'
 $Spooldir = 'C:\SpoolViaRegistry' # Folder should exist

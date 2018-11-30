@@ -1,58 +1,85 @@
-﻿# Recipe 11-8 - Configuring VM and storage movement
+﻿# Recipe 11.9 - Configuring VM and storage movement
 
-# .1 View the VM1 VM on HV1 and verify that it is turned off and not saved
-Get-VM -Name VM1 -Computer HV1
+# 1. View the PSDirect VM on HV1 and verify that it is turned off and not saved
+Get-VM -Name PSDirect -Computer HV1
 
-# 2. Get the VM configuration location and VHD details:
-Write-Output -InputObject (Get-VM -Name vm1).ConfigurationLocation
-Get-VMHardDiskDrive -VMName VM1
+# 2. Get the VM configuration location 
+(Get-VM -Name PSDirect).ConfigurationLocation 
 
-# 3. Move the VM's storage to the C: drive:
-Move-VMStorage -Name VM1 -DestinationStoragePath C:\VM1
+# 3. Get Hard Drive locations
+Get-VMHardDiskDrive -VMName PSDirect | 
+  Format-Table -Property VMName, ControllerType, Path
 
-# 4. View the configuration details after moving the VM's storage:
-Write-Output -InputObject (Get-VM -Name VM1).ConfigurationLocation
-Get-VMHardDiskDrive -VMName VM1
+# 4. Move the VM's to the C\PSDirectNew folder:
+$MHT = @{
+  Name                   = 'PSDirect'
+  DestinationStoragePath = 'C:\PSDirectNew'
+}
+Move-VMStorage @MHT
 
-# 5. Get the VM details for VMs from HV2:
+# 5. View the configuration details after moving the VM's storage:
+(Get-VM -Name PSDirect).ConfigurationLocation
+Get-VMHardDiskDrive -VMName PSDirect | 
+  Format-Table -Property VMName, ControllerType, Path
+  
+# 6. Get the VM details for VMs from HV2:
 Get-VM -ComputerName HV2
 
-# 6. Enable VM migration from both HV1 and HV2:
+# 7. Enable VM migration from both HV1 and HV2:
 Enable-VMMigration -ComputerName HV1, HV2
 
-# 7. Configure VM Migration on both hosts:
-Set-VMHost -UseAnyNetworkForMigration $true -ComputerName HV1, HV2
-$VMHT1 = @{
-    VirtualMachineMigrationAuthenticationType =  'Kerberos'
-    ComputerName                              =  'HV1, HV2'
+# 8. Configure VM Migration on both hosts:
+$SVHT = @{
+  UseAnyNetworkForMigration                 = $true
+  ComputerName                              = 'HV1', 'HV2'
+  VirtualMachineMigrationAuthenticationType =  'Kerberos'
+  VirtualMachineMigrationPerformanceOption  = 'Compression'
 }
-Set-VMHost @VMHT1
-VMHT2 = @{
-    VirtualMachineMigrationPerformanceOption = 'Compression'
-    ComputerName                             = 'HV1, HV2'
-}
-Set-VMHost @VMHT2
+Set-VMHost @SVHT
 
-# 8. Move the VM to HV2
-$start = Get-Date
+# 9. Move the VM to HV2
+$Start = Get-Date
 $VMHT = @{
-    Name            = 'VM1'
-    ComputerName    = 'HV1.reskit.org'
-    DestinationHost = 'HV2.reskit.org'
-    IncludeStorage  =  $true
-    DestinationStoragePath = 'C:\VM1'
+    Name                   = 'PSDirect'
+    ComputerName           = 'HV1'
+    DestinationHost        = 'HV2'
+    IncludeStorage         =  $true
+    DestinationStoragePath = 'C:\PSDirect' # on HV2
 }
 Move-VM @VMHT
-$finish = Get-Date
+$Finish = Get-Date
+($Finish - $Start)
 
-# 9. Display the time taken to migrate
+# 10. Display the time taken to migrate
 $OS = "Migration took: [{0:n2}] minutes"
-Write-Output ($os-f ($($finish-$start).totalminutes))
+($os -f ($($finish-$start).TotalMinutes))
 
-# 10. Check which VMs on are on HV1 and HV2
-Get-VM -ComputerName HV1
+# 11. Check the VMs on HV1
 Get-VM -ComputerName HV2
 
-# 11. Look at the details of the moved VM
-Write-Output ((Get-VM -Name VM1 -Computer HV2).ConfigurationLocation)
-Get-VMHardDiskDrive -VMName VM1 -Computer HV2
+# 12. Check the VMs on HV2
+Get-VM -ComputerName HV2
+
+# 13. Look at the details of the moved VM
+((Get-VM -Name PSDirect -Computer HV2).ConfigurationLocation)
+Get-VMHardDiskDrive -VMName PSDirect -Computer HV2  |
+  Format-Table -Property VMName, Path
+
+###  Move it back (not for publication)
+
+# 14.  Move the VM to HV1
+$Start = Get-Date
+$VMHT2 = @{
+    Name                   = 'PSDirect'
+    ComputerName           = 'HV2'
+    DestinationHost        = 'HV1'
+    IncludeStorage         =  $true
+    DestinationStoragePath = 'C:\vm\vhds\PSDirect' # on HV1
+}
+Move-VM @VMHT2
+$Finish = Get-Date
+($Finish - $Start)
+
+# 10. Display the time taken to migrate
+$OS = "Migration took: [{0:n2}] minutes"
+($os -f ($($finish-$start).TotalMinutes))
