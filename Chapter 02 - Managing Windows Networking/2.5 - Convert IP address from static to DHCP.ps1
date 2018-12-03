@@ -11,10 +11,10 @@ $Interface = $Adapter |
     Get-NetIPInterface -AddressFamily $IPType
 $IfIndex = $Interface.ifIndex
 $IfAlias = $Interface.Interfacealias
-Get-NetIPAddress -InterfaceIndex $Ifindex -AddressFamily $IPType
+Get-NetIPAddress -InterfaceIndex $IfIndex -AddressFamily $IPType
 
 # 2. Set the interface to get its address from DHCP:
 Set-NetIPInterface -InterfaceIndex $IfIndex -DHCP Enabled
 
 # 3. Test the results:
-Get-NetIPAddress -InterfaceIndex $Ifindex -AddressFamily $IPType
+Get-NetIPAddress -InterfaceIndex $IfIndex -AddressFamily $IPType

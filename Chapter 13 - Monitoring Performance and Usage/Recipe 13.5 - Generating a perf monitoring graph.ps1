@@ -1,4 +1,4 @@
-﻿# Recipe 6-5
+﻿# Recipe 13.5
 # Create GPU Graph
 
 # 1. Load the Forms assembly
@@ -15,7 +15,7 @@ $CPUChart = New-Object System.Windows.Forms.DataVisualization.Charting.Chart
 # 4. Defne the chart dimensions
 $CPUChart.Width  = 1000
 $CPUChart.Height = 600
-$CPUChart.Titles.Add("SRV1 CPU Utilisation")
+$CPUChart.Titles.Add("SRV1 CPU Utilisation") | Out-Null
 
 # 5 Create and define the chart area
 $ChartArea = New-Object System.Windows.Forms.DataVisualization.Charting.ChartArea
@@ -37,5 +37,6 @@ $counters | ForEach-Object{
 }
 
 # 8. Save the chart image
+new-item c:\perflogs\reports -ItemType Directory -ea SilentlyContinue
 $CPUChart.SaveImage("C:\PerfLogs\Reports\Srv1CPU.png", 'PNG')
 MSPaint C:\PerfLogs\Reports\SRV1cpu.png

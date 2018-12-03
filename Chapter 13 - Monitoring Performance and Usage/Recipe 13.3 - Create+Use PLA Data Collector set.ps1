@@ -1,6 +1,5 @@
-﻿# Recipe 6-3 - Create and add a data collector set
+﻿# Recipe 6.3 - Create and add a data collector set
 
-#region Create the counter
 # 1. Create and populate a new collector
 $Name = 'SRV1 Collector Set'
 $SRV1CS = New-Object -COM Pla.DataCollectorSet
@@ -8,8 +7,11 @@ $SRV1CS.DisplayName                = $Name
 $SRV1CS.Duration                   = 12*3600  # 12 hours - 19:00
 $SRV1CS.SubdirectoryFormat         = 1 
 $SRV1CS.SubdirectoryFormatPattern  = 'yyyy\-MM'
-$SRV1CS.RootPath = Join-Path "$Env:SystemDrive" "\PerfLogs\Admin\$Name"
-
+$JPHT = @{
+  Path      = "$Env:SystemDrive"
+  ChildPath = "\PerfLogs\Admin\$Name"
+}
+$SRV1CS.RootPath = Join-Path @JPHT
 $SRV1Collector = $SRV1CS.DataCollectors.CreateDataCollector(0)
 $SRV1Collector.FileName              = "$Name_"
 $SRV1Collector.FileNameFormat        = 1 
@@ -48,13 +50,15 @@ try
     $SRV1CS.Commit("$Name" , $null , 0x0003) | Out-Null
     $SRV1CS.Start($false);
 }
-catch [Exception]
+catch 
 {
     Write-Host "Exception Caught: " $_.Exception -ForegroundColor Red
     return
 }
-#endregion
 
+###  at this point the collector set is live inside Windows
+
+#  Not for the book...
 pause
 
 # 6. Remove the counter

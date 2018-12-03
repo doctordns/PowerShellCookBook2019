@@ -1,4 +1,4 @@
-﻿# 7-3 Create and add a data collector set
+﻿# 7.3 Create and add a data collector set
 # This script creates a CSV
 
 #region Create the counter
@@ -9,10 +9,14 @@ $SRV1CS.DisplayName                = $Name
 $SRV1CS.Duration                   = 12*3600  # 12 hours - 19:00
 $SRV1CS.SubdirectoryFormat         = 1 
 $SRV1CS.SubdirectoryFormatPattern  = 'yyyy\-MM'
+$JPHT = @{
+  Path      = "$Env:SystemDrive" 
+  Childpath = "\PerfLogs\Admin\$Name" 
+}
 $SRV1CS.RootPath = Join-Path "$Env:SystemDrive" "\PerfLogs\Admin\$Name" 
 
 $SRV1Collector = $SRV1CS.DataCollectors.CreateDataCollector(0) 
-$SRV1Collector.FileName              = "$Name_"
+$SRV1Collector.FileName              = '$Name_'
 $SRV1Collector.FileNameFormat        = 1 
 $SRV1Collector.FileNameFormatPattern = "\-MM\-dd"
 $SRV1Collector.SampleInterval        = 15
@@ -54,18 +58,3 @@ catch [Exception]
     Write-Host "Exception Caught: " $_.Exception -ForegroundColor Red 
     return 
 } 
-#endregion
-
-pause
-
-# 6. Remove the counter
-$DCStRemote = New-Object -COM Pla.DataCollectorSet  
-$DCstRemote.Query($Name,'LocalHost')
-$DCstRemote.Stop($true)
-$DCstRemote.Delete()
-
-# 7 and start the counter too
-$DCStRemote = New-Object -COM Pla.DataCollectorSet  
-$Name = 'SRV1 Collector Set'
-$DCstRemote.Query($Name,'LocalHost')
-$DCstRemote.Start($true)
