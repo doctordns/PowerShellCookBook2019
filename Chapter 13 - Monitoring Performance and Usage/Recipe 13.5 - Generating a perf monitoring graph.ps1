@@ -1,5 +1,5 @@
 ﻿# Recipe 13.5
-# Create GPU Graph
+# Create a performance monitoring Graph
 
 # 1. Load the Forms assembly
 Add-Type -AssemblyName System.Windows.Forms.DataVisualization
@@ -36,7 +36,14 @@ $counters | ForEach-Object{
         Out-Null
 }
 
-# 8. Save the chart image
-new-item c:\perflogs\reports -ItemType Directory -ea SilentlyContinue
-$CPUChart.SaveImage("C:\PerfLogs\Reports\Srv1CPU.png", 'PNG')
-MSPaint C:\PerfLogs\Reports\SRV1cpu.png
+# 8. Ensure folder exists, then save the chart image as a png file in the folder:
+$NIHT = @{
+  Path        = 'C:\Perflogs\Reports'
+  ItemType    = 'Directory'
+  ErrorAction = 'SilentlyContinue' 
+}
+New-Item @NIHT
+$CPUChart.SaveImage("C:\PerfLogs\Reports\Srv1CPU.Png", 'PNG')
+
+# 9. view the chart image
+MSPaint C:\PerfLogs\Reports\SRV1cpu.Png
