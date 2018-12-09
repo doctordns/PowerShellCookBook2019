@@ -1,7 +1,7 @@
 ﻿# Recipe 13.6  -  Creating a Systems Diagnostic report
 #
 # Run on SRV1
-`
+
 # 1. Start the built-in data collector on the local system:
 $PerfReportName="System\System Diagnostics"
 $DataSet = New-Object -ComObject Pla.DataCollectorSet
