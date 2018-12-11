@@ -12,7 +12,9 @@ $DataSet.Start($true)
 "Sleeping for [$($Dataset.Duration)] seconds"
 Start-Sleep -Seconds $Dataset.Duration
 
-# 3. Get the report and view it:
+# 3. Get the report and store it as HTML:
 $Dataset.Query($PerfReportName,$null)
 $PerfReport = $Dataset.LatestOutputLocation + "\Report.html"
+
+# 4. View the report:
 & $PerfReport
