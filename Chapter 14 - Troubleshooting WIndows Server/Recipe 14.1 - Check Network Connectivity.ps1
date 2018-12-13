@@ -48,8 +48,8 @@ $TNCHT = @{
 }
 Test-NetConnection @TNCHT
 
-# 6. Look for a particular port (i.e SMB on DC1)
-Test-NetConnection -ComputerName DC1 -Port 445
+# 6. Look for a particular port (i.e LDAP on DC1)
+Test-NetConnection -ComputerName DC1 -Port 389
 
 # 7. Look for a host that does not exist
 Test-NetConnection -ComputerName 10.10.10.123

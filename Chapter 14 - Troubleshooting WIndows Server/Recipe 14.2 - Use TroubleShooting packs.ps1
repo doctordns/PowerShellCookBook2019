@@ -4,7 +4,7 @@
 
 
 # 1. Get Trobleshooting packs
-$Path = 'C:\Windows\diagnostics\syste'
+$Path = 'C:\Windows\diagnostics\system'
 $TSPackfolders = Get-ChildItem -Path $Path -Directory
 $TSPacks =
     Foreach ($TSPack in $TSPackfolders) {
@@ -12,17 +12,17 @@ $TSPacks =
 
 # 2. Display the packs
 $FTHT = @{
-   Property = 'Name,
-               Version,
-               MinimumVersion,
-               Description'
-   Wrap     = $true
-   AutoSize  = $true
+ Property = 'Name',
+            'Version',
+            'MinimumVersion',
+            'Description'
+ Wrap     = $true
+ AutoSize = $true
 }
 $TSPacks | Format-Table @FTHT
 
 # 3. Get a troubleshooting pack
-$TsPack = $TSPacks | Where-Object id -eq 'WindowsUpdateDiagnostic'
+$TsPack = $TSPacks | Where-Object id -eq 'NetworkDiagnostics'
 
 # 4. look at the problems this pack looks for
 $TSPack.RootCauses
@@ -35,12 +35,19 @@ $TSPack.RootCauses.Resolutions
 $TsPack | Invoke-TroubleshootingPack
 
 # 7. Use get-TroubleshootingPack to create an answer file:
-Get-TroubleshootingPack -Path $TSPack.path `
-              -AnswerFile c:\Answers.xml
+$TSHT = @{
+  Path       = $TSPack.Path
+  AnswerFile = 'c:\Answers.xml'
+}
+Get-TroubleshootingPack @TSHT
 
 # 8. Display the XML:
 Get-Content -Path C:\Answers.xml
 
 # 9. Run WU pack using answer file
+$AFHT = @{
+  AnswerFile = 'C:\Answers.xml'
+  Unattend   = $true
+}
 $TsPack |
-    Invoke-TroubleshootingPack -AnswerFile C:\Answers.xml -unattend
+  Invoke-TroubleshootingPack @AFHT

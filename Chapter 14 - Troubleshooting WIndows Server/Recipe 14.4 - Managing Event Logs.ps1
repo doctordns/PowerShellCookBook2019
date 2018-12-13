@@ -20,8 +20,8 @@ Get-EventLog -LogName application |
 Get-EventLog -LogName System |
     Group-Object -Property Source |
         Sort-Object -Property Count -Descending |
-            Select=Object -First 10 |
-                Format-Table -Property name, count
+            Select-Object -First 10 |
+                Format-Table -Property Name, Count
 
 # 6. Examine ALL local event logs
 $LocEventLogs = Get-WinEvent -ListLog *
@@ -40,12 +40,13 @@ $RemEventLogs |
 # 8. Look at New logs - Windows Update - what updates have been found
 $LN = 'Microsoft-Windows-WindowsUpdateClient/Operational'
 $Updates = Get-WinEvent -LogName $LN |
-    Where-Object ID  -EQ 41
-$out = Foreach ($Update in $Updates) {
-    $ht = @{}
-    $ht.Time = $Update.TimeCreated
-    $ht.update = ($Update.Properties | Select-Object -First 1).Value
-    New-Object -TypeName PSObject -Property $HT }
-$out |
-    Sort-Object -Property TimeCreated |
-        Format-Table -Wrap
+  Where-Object ID  -EQ 41
+$Out = Foreach ($Update in $Updates) {
+  $HT = @{}
+  $HT.Time = $Update.TimeCreated
+  $HT.Update = ($Update.Properties | Select-Object -First 1).Value
+  New-Object -TypeName PSObject -Property $HT 
+}
+$Out |
+  Sort-Object -Property TimeCreated |
+     Format-Table -Wrap
