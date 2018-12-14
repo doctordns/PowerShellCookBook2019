@@ -1,4 +1,4 @@
-﻿#  Recipe 14.5 - Forward event logs from SRV1 to SRV2
+﻿#  Recipe 14.4 - Forward event logs from SRV1 to SRV2
 
 # 1. Create the collector security group.
 $ECGName = 'Event Collection Group'

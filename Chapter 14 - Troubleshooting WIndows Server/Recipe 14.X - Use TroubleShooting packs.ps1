@@ -2,6 +2,9 @@
 #
 # Run on SRV1
 
+#
+#  NB: THis recipe was cut from the book, but here it is.
+#  Using Get-TroubleshootingPack with -Answerfile does not work propertly.
 
 # 1. Get Trobleshooting packs
 $Path = 'C:\Windows\diagnostics\system'

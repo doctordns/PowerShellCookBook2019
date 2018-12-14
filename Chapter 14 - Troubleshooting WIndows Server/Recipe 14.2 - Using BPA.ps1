@@ -1,6 +1,7 @@
-﻿# Recipe 14.3 - Using BPA
+﻿# Recipe 14.2 - Using BPA
 #
 # Run on SRV1
+# uses DC1
 
 # 1. Get all BPA Models on SRV1
 Get-BpaModel | 
@@ -24,24 +25,26 @@ $Warnings = $Results | Where-Object Severity -eq 'Warning'
 # 6. Look at other BPA Results:
 $Results  | Format-Table -Property Title, Compliance -Wrap
 
-# 7. Use BPA Remotely - what models exist on DC1
+# 7. Use BPA Remotely - what models exist on DC1?
 Invoke-Command -ComputerName DC1 -ScriptBlock {Get-BpaModel} |
   Format-Table -Property Name, Id
 
-# 9. Run BPA Analyzer on DC1
-$SB = {Invoke-BpaModel -ModelId `
-                    Microsoft/Windows/DirectoryServices}
-Invoke-Command -ComputerName DC1 -ScriptBlock $sb
+# 8. Run BPA Analyzer on DC1
+$ModelId = 'Microsoft/Windows/DirectoryServices'
+$SB = {Invoke-BpaModel -ModelId $using:ModelId}
+Invoke-Command -ComputerName DC1 -ScriptBlock $SB
 
-# 10. Get the results
-$SB = {Get-BpaResult -ModelId Microsoft/WIndows/DirectoryServices}
-$RRESULTS = Invoke-Command -ComputerName DC1 -ScriptBlock $sb
+# 9. Get the results of DS BPA from DC1
+$SB = {Get-BpaResult -ModelId Microsoft/Windows/DirectoryServices}
+$RRESULTS = Invoke-Command -ComputerName DC1 -ScriptBlock $SB
 
-# 11 How many checks/results?
-$RResults.count
+# 10 How many checks/results?
+"Total results returned: $($RResults.Count)"
 $RResults | Group-Object SEVERITY |
-                 Format-Table -Property Name, Count
+  Format-Table -Property Name, Count
 
-# 12. Look at one error:
-$RResults | Where-Object Severity -EQ 'Error' |
+# 11. Use Set-BPAResult to just get errosr:
+$RResults | 
+  Where-Object Severity -EQ 'Error' |
     Format-List -Property Category,Problem,Impact,Resolution
+
