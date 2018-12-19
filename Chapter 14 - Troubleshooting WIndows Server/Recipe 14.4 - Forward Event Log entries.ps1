@@ -92,8 +92,7 @@ $xmlfile = @'
 <Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription">
 <SubscriptionId>FailedLogins</SubscriptionId>
 <SubscriptionType>SourceInitiated</SubscriptionType>
-<Description>Source Initiated Subscription to Collect bad logons 
-to SRV1</Description>
+<Description>Collects failed logins to SRV1</Description>
 <Enabled>true</Enabled>
 <Uri>http://schemas.microsoft.com/wbem/wsman/1/windows/EventLog</Uri>
 <ConfigurationMode>Custom</ConfigurationMode>
@@ -106,7 +105,7 @@ to SRV1</Description>
 <Heartbeat Interval="60000"/>
 </PushSettings>
 </Delivery>
-<Expires>2018-01-01T00:00:00.000Z</Expires>
+<Expires>2020-01-01T00:00:00.000Z</Expires>
 <Query>
 <![CDATA[
 <QueryList>
@@ -126,11 +125,10 @@ to SRV1</Description>
 </AllowedSourceDomainComputers>
 </Subscription>
 '@
-$xmlfile | Out-File -FilePath C:\Foo\LogonEvent.XML
+$xmlfile | Out-File -FilePath C:\Foo\FailedLogins.XML
 
 # 12. Now register this with the WEC on SRV1
-wecutil cs C:\foo\LogonEvent.XML
-
+wecutil cs C:\foo\FailedLogins.XML
 
 # 13. enumerate the subscriptions to see ours
 wecutil es
@@ -147,7 +145,7 @@ New-GPLink -Name 'Event Source' -Target 'OU=IT,DC=Reskit,DC=Org'
 # 16. Set GPO permissions
 $GPHT3 = @{
   Name            = 'Event Source'
-  TargetName      = 'Event Source' # the group
+  TargetName      = 'Event Source' # group name
   TargetType      = 'Group'
   PermissionLevel = 'GpoApply'
 }
@@ -156,7 +154,7 @@ $GPHT4 = @{
   Name            = 'Event Source'
   TargetName      = 'Authenticated Users' #everyone else
   TargetType      = 'Group'
-  PermissionLevel = 'None'
+  PermissionLevel = 'None'  
 }
 Set-GPPermission @GPHT4   # generates a warning
 
@@ -175,18 +173,36 @@ $GPRHT1 = @{
 Set-GPRegistryValue @GPRHT1
 
 # 18. Restart SRV1 to pick up the new policy:
-Restart-Computer SRV1 -Force
+Restart-Computer SRV1 -Force -wait 
 
-# 19. Once SRV1 has rebooted, attempt to login using incorrect credentials.
+# 19. Once SRV1 has rebooted, attempt to login interactively
+#     to Srv1 using incorrect credentials
 
-# 14. View the result of invalid logins:
+# 20. View status of FailedLogins subscription
+wecutil gr failedlogins
+
+# 21. Examine Failed Logins Directly from SRV1
+$FilterHT = @{LogName='Security'; id = '4625'}
+$Events = Get-WinEvent -ComputerName SRV1  -FilterHashTable $FilterHT
+Foreach ($Event in $Events)  {
+$User = $Event |
+  Select-Object -ExpandProperty Properties |
+    Select-Object -Skip 5 -First 1
+"Failed UserName: {0,16} at {1,-40}" -f $User.Value,$Event.TimeCreated
+}
+
+####  EVERYTHING WORKS TO HERE..
+#### IN STEP 22, no events get forwarded.
+
+# 22. Now read the forwarded events:
 $BadLogins = Get-WinEvent -LogName ForwardedEvents
-Foreach ($badlogin in $badlogins)
+"$($BadLogins.Count) Events forwarded"
+Foreach ($Badlogin in $Badlogins)
 {
-  $Obj = [Ordered] @{}
-  $Obj.time = $BadLogins.TimeCreated
+  $Obj       = [Ordered] @{}
+  $Obj.time  = $BadLogins.TimeCreated
   $Obj.logon = ($BadLogins |
-    Select-Object -ExpandProperty Properties).Value |
-      Select-Object -Skip 5 -First 1
+                Select-Object -ExpandProperty Properties).Value|
+                 Select-Object -Skip 5 -First 1
   New-Object -TypeName PSobject -Property $Obj
 }
