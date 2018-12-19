@@ -41,7 +41,7 @@ $RemEventLogs |
 $LN = 'Microsoft-Windows-WindowsUpdateClient/Operational'
 $Updates = Get-WinEvent -LogName $LN |
   Where-Object ID  -EQ 41
-$Out = Foreach ($Update in $Updates) {
+$Out = qoreach ($Update in $Updates) {
   $HT = @{}
   $HT.Time = [System.DateTime] $Update.TimeCreated
   $HT.Update = ($Update.Properties | Select-Object -First 1).Value
