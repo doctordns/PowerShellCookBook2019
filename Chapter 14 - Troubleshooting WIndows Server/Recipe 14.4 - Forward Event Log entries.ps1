@@ -133,7 +133,10 @@ wecutil cs C:\foo\FailedLogins.XML
 # 13. enumerate the subscriptions to see ours
 wecutil es
 
-# 14. Next, create the event source security group:
+# 14. Configure Security for Event Readers Group
+Add-LocalGroupMember -Name 'Event Log Readers' -Member 'Network Service'
+
+# 15. Next, create the event source security group:
 New-ADGroup -Name 'Event Source' -GroupScope Global
 Add-ADGroupMember -Identity "Event Source" -Members 'SRV1$'
 
