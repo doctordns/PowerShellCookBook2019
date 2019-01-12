@@ -17,7 +17,8 @@ Get-SmbShare -Name * |
 New-SmbShare -Name Foo -Path C:\Foo
 
 # 3. Update the share to have a description
-Set-SmbShare -Name Foo -Description 'Foo share for IT' -Confirm:$False
+$CHT = @{Confirm=$False}
+Set-SmbShare -Name Foo -Description 'Foo share for IT' @CHT
 
 # 4. Set folder enumeration mode
 $CHT = @{Confirm = $false}
@@ -43,8 +44,8 @@ $AHT2 = @{
 } 
 Grant-SmbShareAccess @AHT2 | Out-Null
 
-# add system full access
-$AHT3 = {
+# 8. Add system full access
+$AHT3 = @{
     Name          = 'foo'
     AccessRight   = 'Full'
     AccountName   = 'NT Authority\SYSTEM'
@@ -52,36 +53,58 @@ $AHT3 = {
 }
 Grant-SmbShareAccess  @AHT3 | Out-Null
 
-# Set Creator/Owner to Full access
-$AHT4 = {
+# 9. Set Creator/Owner to Full Access
+$AHT4 = @{
     Name         = 'foo'
-    AccessRight  = 'Full `'
+    AccessRight  = 'Full'
     AccountName  = 'CREATOR OWNER'
-    Confirm      = $false 
+    Confirm      = $False 
 }
 Grant-SmbShareAccess @AHT4  | Out-Null
 
-# Grant IT Team read access
-$AHT5 = {
-    Name        = 'foo'
+# 10. Grant Saves Team read access, SalesAdmins has Full access
+$AHT5 = @{
+    Name        = 'Foo'
     AccessRight = 'Read'
-    AccountName = 'IT Team'
+    AccountName = 'Sales'
     Confirm     = $false 
 }
 Grant-SmbShareAccess @AHT5 | Out-Null
-#                      
-$AHT6 = {
-    Name        = 'foo'
+$AHT6 = @{
+    Name        = 'Foo'
     AccessRight = 'Full'
-    AccountName = 'IT Management'
+    AccountName = 'SalesAdmins'
     Confirm     = $false     
 }
 Grant-SmbShareAccess  @AHT6 | Out-Null
 
-# Step 7 - Review share access
-Get-SmbShareAccess -Name foo
+# 11. Review share access
+Get-SmbShareAccess -Name Foo | 
+  Sort-Object AccessRight
+
+# 12. Set file ACL to be same as share acl
+Set-SmbPathAcl -ShareName 'Foo'
 
 
+# 13. Create a file in c:\foo
+'foo' | Out-File -FilePath C:\Foo\Foo.Txt
+
+
+# 14. Set file ACL to be same as share acl
+Set-SmbPathAcl -ShareName 'Foo'
+
+# 15. View folder ACL using Get-NTFSAccess
+Get-NTFSAccess -Path C:\Foo | 
+  Format-Table -AutoSize
+
+# 16. View file ACL
+Get-NTFSAccess -Path C:\Foo\Foo.Txt |
+  Format-Table -AutoSize
+  
+
+
+
+# reset for testing
 
 <# reset the shares 
 Get-smbshare foo | remove-smbshare -Confirm:$false
