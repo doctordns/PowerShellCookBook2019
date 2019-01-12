@@ -1,0 +1,16 @@
+﻿# Recipe 8.2 - Managing The Hello World Sample
+#
+# Run on CH1
+
+# 1. Start by pruning everything and ensuring you start fresh
+docker system prune -a
+
+# 2. Get Base Container Images
+
+
+# Download the container base images:
+
+docker pull microsoft/nanoserver:1809
+docker pull microsoft/windowsservercore:1809
+
+docker run microsoft/dotnet-samples:dotnetapp-nanoserver:1809 
