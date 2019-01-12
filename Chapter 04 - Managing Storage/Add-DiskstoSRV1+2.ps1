@@ -20,6 +20,40 @@ Get-VMHardDiskDrive -vmname srv1
 Get-VMHardDiskDrive -vmname srv2 
 
 
+#  Format the srv2 drives so that recipe 4.3 works
+$SB = {
+
+# Initialize the disks
+Get-Disk | 
+  Where PartitionStyle -eq Raw |
+    Initialize-Disk -PartitionStyle GPT 
+
+$NVHT1 = @{
+  DiskNumber   =  1 
+  FriendlyName = 'Storage' 
+  FileSystem   = 'NTFS' 
+  DriveLetter  = 'F'
+}
+New-Volume @NVHT1
+#  Create two volumes in Disk 2 - first create G:
+New-Partition -DiskNumber 2  -DriveLetter G -Size 4gb
+# Create a second partition H:
+New-Partition -DiskNumber 2  -DriveLetter H -UseMaximumSize
+# Format G: and H:
+$NVHT1 = @{
+  DriveLetter        = 'G'
+  FileSystem         = 'NTFS' 
+  NewFileSystemLabel = 'Log'}
+Format-Volume @NVHT1
+$NVHT2 = @{
+  DriveLetter        = 'H'
+  FileSystem         = 'NTFS' 
+  NewFileSystemLabel = 'GDShow'}
+Format-Volume @NVHT2
+}
+Invoke-Command -ComputerName SRV2 -ScriptBlock $SB -Credential $Credrk
+
+
 ###  For testing - remove the disksfrom the VMs, delete them, and recreate them if necessary!
 
 # Remove disks from the VMs

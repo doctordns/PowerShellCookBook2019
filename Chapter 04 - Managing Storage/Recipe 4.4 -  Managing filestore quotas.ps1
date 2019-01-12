@@ -10,7 +10,7 @@ $IHT = @{
 }
 Install-WindowsFeature @IHT
 
-# 2. Set SMTP settings on FSRM
+# 2. Set SMTP settings in FSRM
 $MHT = @{
   SmtpServer        = 'SRV1.Reskit.Org'   # Previously setup 
   FromEmailAddress  = 'FSRM@Reskit.Org'
@@ -25,11 +25,11 @@ Confirm        = $false
 }
 Send-FsrmTestEmail @MHT
 
-# 4. Create a new FSRM quota template for a 10mb limit
+# 4. Create a new FSRM quota template for a 10MB limit
 $QHT1 = @{
 Name        = 'TenMB Limit'
 Description = 'Quota of 10 MB'
-Size        = 10mb
+Size        = 10MB
 }
 New-FsrmQuotaTemplate @QHT1
 
@@ -70,59 +70,67 @@ Body      = $Body
 }
 $Action1 = New-FsrmAction @NAHT
 
-# 9. Create a Threshold with associated action
+# 9. Create a FSRM action for soft threshold exceeded 
 $Thresh = New-FsrmQuotaThreshold -Percentage 85 -Action $Action1
 
 # 10. Create a soft 10 MB quota on C:\Quotas folder with threashold
-$NQHT = @{
-Path      = 'C:\QuotaS'
-Template  = 'Soft 5MB Limit'
-Threshold = $Thresh
+$NQHT1 = @{
+  Path      = 'C:\QuotaS'
+  Template  = 'Soft 5MB Limit'
+  Threshold = $Thresh
 }
-New-FsrmQuota @NQHT
+New-FsrmQuota @NQHT1
 
-# 12. Now test 85% SOFT quota limit on C:\QuotaS
+# 11. Now test 85% SOFT quota limit on C:\QuotaS
 Get-ChildItem c:\quotas -Recurse | Remove-Item -Force
 $S = '42'
 1..24 | foreach {$s = $s + $s}
 $S | Out-File -FilePath C:\QuotaS\Demos.txt
 Get-ChildItem -Path C:\QuotaS\Demos.txt
 
-# 13. Test over use of soft quota
-Get-ChildItem C:\quotas -Recurse | Remove-Item -Force
-$S = '42'
-1..26 | foreach {$s = $s + $s}
-$S | Out-File -FilePath C:\QuotaS\Demos.txt
-Get-ChildItem -Path C:\QuotaS\Demos.txt
-
-# 14. View the email that results
+# 12. View mail received
 #  View via Outlook
 
-# 15. Create a Threshold Action to log to the error log
+# 13. Create a second Threshold Action to log to the applicationlog
 $Action2 = New-FsrmAction -Type Event -EventType Error
 $Action2.Body = $Body
 
-# 16. Create two quota thresholds 
+# 14. Create two quota thresholds for a new quota
 $Thresh2 = New-FsrmQuotaThreshold -Percentage 65 
 $Thresh3 = New-FsrmQuotaThreshold -Percentage 85 
 $Thresh2.Action = $Action2
-$Thresh3.Action = $Action2
+$Thresh3.Action = $Action2  # same action details 
 
 
-# 17. Create a hard quota, with two thresholds,
-#     based on a template
+# 15. Create a hard quota, with two thresholds and,
+#     related threshold actions, based on a template
 $NQHT = @{
-Path      = 'C:\Quota'
-Template  = 'TenMB Limit'
-Threshold =  $Thresh2,$Thresh3
+Path        = 'C:\Quota'
+Template    = 'TenMB Limit'
+Threshold   =  ($Thresh2, $Thresh3)
+Description = 'Hard Threshold with2 actions'
 }
-New-FsrmQuota @NQHT
+New-FsrmQuota @NQHT 
 
-# 18. Test hard quota
+# 16. Remove existing files if any
 Get-ChildItem C:\Quota -Recurse | Remove-Item -Force
-$S = '42'
-1..27 | foreach {$s = $s + $s}
-"`$S is $((($s.length)/1mb).tostring('N0'))MB long"
-$S | out-file -FilePath C:\Quota\demos.txt -Encoding ascii
-$Len = (Get-ChildItem -Path c:\Quota\demos.txt).Length
-"Output file is $(($Len/1MB).ToString('N0'))MB long"
+
+
+# 17. Test hard limit on C:\Quota
+$URK = "ThomasL@reskit.org"
+$PRK = ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force
+$CredRK = New-Object system.management.automation.PSCredential $URK,$PRK
+$SB = {
+  $S = '42'
+  1..27 | foreach {$s = $s + $s}
+  $S | Out-File -FilePath C:\Quota\Demos.Txt -Encoding ascii
+  $Len = (Get-ChildItem -Path C:\Quota\Demos.Txt).Length}
+$ICMHT = @{
+  ComputerName = 'SRV1'
+  Credential   = $CredRK
+  ScriptBlock  = $SB}
+Invoke-Command -ComputerName SRV1 -Credential $CredRK -ScriptBlock $SB
+
+# 18. View event logs
+Get-EventLog -LogName Application -Source SRMSVC  | 
+  Format-Table -AutoSize -Wrap
