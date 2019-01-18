@@ -1,31 +1,37 @@
-# Recipe 9.4 - Creating an iSCSI Target
-# Assumes you have the Iscsi Target feature installed, 
-# and the E: drive on SRV1 created.
-#  NB Typo in book talks about I:
+# Recipe 5.4 - Creating an iSCSI Target
 # Run from SRV1 as Administrator@reskit.org
 
-# 1. Install the iSCSI target feature
+# 1. Install the iSCSI target feature on SRV1
 Install-WindowsFeature FS-iSCSITarget-Server
 
 # 2. Explore iSCSI target server settings:
 Get-IscsiTargetServerSetting
 
-# 3. Create an iSCSI disk (that is a LUN):
-$LunPath = 'E:\SalesData.Vhdx'
-$LunName = 'SalesTarget'
+# 3. Create a foler on SRV1 to hold the iscis virtual disk
+$NIHT = @{
+  Path        = 'C:\iSCSI' 
+  ItemType    = 'Directory'
+  ErrorAction = 'SilentlyContinue'
+}
+New-Item @NIHT | Out-Null
+
+
+# 4. Create an iSCSI disk (that is a LUN):
+$LP = 'C:\iSCSI\SalesData.Vhdx'
+$LN = 'SalesTarget'
 $VDHT = @{
-   Path        = $LunPath
+   Path        = $LP
    Description = 'LUN For Sales'
-   SizeBytes   = 1.1GB
+   SizeBytes   = 100MB
  }
 New-IscsiVirtualDisk @VDHT
 
-# 4. Create the iSCSI target:
+# 5. Create the iSCSI target:
 $THT = @{
-    TargetName   = $LunName
-    InitiatorIds = 'DNSNAME:FS1.Reskit.Org'
+  TargetName   = $LN
+  InitiatorIds = 'DNSNAME:SRV1.Reskit.Org'
 }
 New-IscsiServerTarget @THT
 
-# 5. Create iSCSI disk target mapping:
-Add-IscsiVirtualDiskTargetMapping -TargetName $LunName -Path $LunPath
+# 6. Create iSCSI disk target mapping:
+Add-IscsiVirtualDiskTargetMapping -TargetName $LN -Path $LP

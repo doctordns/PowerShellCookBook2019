@@ -1,51 +1,64 @@
-﻿# Recipe 9.5 - Using an ISCSI Target
+﻿# Recipe 5.5 - Using an ISCSI Target
+#
+#  Run from FS1
 
 
-# Step 1 - adjust and start the service 
-Set-Service msiscsi -StartupType 'Automatic'
-Start-Service msiscsi
+# 1. Adjust the iSCSI service to auto start, then start the service 
+Set-Service MSiSCSI -StartupType 'Automatic'
+Start-Service MSiSCSI
 
-# Step 2 - get to portal
-New-IscsiTargetPortal –TargetPortalAddress Srv1.Reskit.Org `
-                      -TargetPortalPortNumber 3260
-
-# Step 3 - Find Target on portal
+# 2. Setup portal to SRV1
+$PHT = @{
+  TargetPortalAddress     = 'SRV1.Reskit.Org'
+  TargetPortalPortNumber  = 3260
+}
+New-IscsiTargetPortal @PHT
+                   
+# 3. Find and view the SalesTarget on portal
 $Target  = Get-IscsiTarget | 
                Where-Object NodeAddress -Match 'SalesTarget'
 $Target 
 
-# Step 4 - Connect to the target
-Connect-IscsiTarget -TargetPortalAddress Srv1 `
-                    –NodeAddress $Target.NodeAddress
-
-# Step 5 - Set up the disk
-$ISD = Get-Disk | Where-Object BusType -eq 'iscsi'
-Set-Disk -InputObject $isd -IsOffline  $False
-Set-Disk -InputObject $isd -Isreadonly $False
-$ISD | New-Volume -FriendlyName SalesData -FileSystem NTFS -DriveLetter S
-
-# Step 6 - use the drive as, well, a drive!
-Set-Location -Path S:
-New-Item -Path S:\  -Name SalesData -ItemType Directory
-'Testing 1-2-3' | Out-File -FilePath s:\SalesData\Test.txt
-Get-ChildItem s:\SalesData
-
-# step 7 - Setup Iscsi on FS2
-$Fs2Sb = { 
-  # Setup Iscsi Client on FS2
-  Set-Service -name msiscsi -StartupType 'Automatic'
-  Start-Service msiscsi
-  # Get targets on SRV1
-  $Salestarget = Get-IscsiTargetPortal Srv1.reskit.org |Get-IscsiTarget |
-                      WHere-Object NodeAddress -Match 'salestarget'
-  $HVTarget    = Get-IscsiTargetPortal Srv1.reskit.org |Get-IscsiTarget |
-                      WHere-Object NodeAddress -Match 'hvtarget'
-  # Now connect to the targets
-  Connect-IscsiTarget –NodeAddress $Salestarget.NodeAddress
-  Connect-IscsiTarget –NodeAddress $HVTarget.NodeAddress
+# 4. Connect to the target on SRV1
+$CHT = @{
+  TargetPortalAddress = 'SRV1.Reskit.Org'
+  NodeAddress         = $Target.NodeAddress
 }
-Invoke-Command -ComputerName FS2 `
-               -ScriptBlock $Fs2Sb
+Connect-IscsiTarget  @CHT
+                    
+
+# 5. View ICI disk from FST on SRV1
+$ISD =  Get-Disk | 
+  Where-Object BusType -eq 'iscsi'
+$ISD | 
+  Format-Table -AutoSize
+
+# 6. Turn disk online and make R/W
+$ISD | 
+  Set-Disk -IsOffline  $False
+$ISD | 
+  Set-Disk -Isreadonly $False
+
+# 7. Format the volume on FS1
+$NVHT = @{
+  FriendlyName = 'SalesData'
+  FileSystem   = 'NTFS'
+  DriveLetter  = 'I'
+}
+$ISD | 
+  New-Volume @NVHT
+
+# 8. Use the drive as a local drive:
+Set-Location -Path I:
+New-Item -Path I:\  -Name SalesData -ItemType Directory |
+  Out-Null
+'Testing 1-2-3' | 
+  Out-File -FilePath I:\SalesData\Test.Txt
+Get-ChildItem I:\SalesData
+
+
+
+
 
 
 

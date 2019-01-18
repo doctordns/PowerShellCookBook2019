@@ -1,4 +1,5 @@
-# Recipe 9.3 - Acessing SMB shares
+# Recipe 5.3 - Acessing SMB shares
+#
 # run from CL1
 # Uses the foo share on FS1 created earlier
 

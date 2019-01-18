@@ -68,7 +68,7 @@ Set-GPRegistryValue @RVHT4 | Out-Null
 $RHT = @{
 Name       = $PolicyName
 ReportType = 'Html'
-Path       = 'C:\foo\out.htm'
+Path       = 'C:\foo\out.html'
 }
 Get-GPOReport @RHT
 Invoke-Item -Path $RHT.Path
