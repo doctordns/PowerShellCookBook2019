@@ -7,7 +7,7 @@ Install-WindowsFeature FS-iSCSITarget-Server
 # 2. Explore iSCSI target server settings:
 Get-IscsiTargetServerSetting
 
-# 3. Create a foler on SRV1 to hold the iscis virtual disk
+# 3. Create a folder on SRV1 to hold the iscis virtual disk
 $NIHT = @{
   Path        = 'C:\iSCSI' 
   ItemType    = 'Directory'
@@ -22,16 +22,24 @@ $LN = 'SalesTarget'
 $VDHT = @{
    Path        = $LP
    Description = 'LUN For Sales'
-   SizeBytes   = 100MB
+   SizeBytes   = 500MB
  }
 New-IscsiVirtualDisk @VDHT
 
-# 5. Create the iSCSI target:
+# 5. Set the iSCSI target, specifiying who can initiate
+#    an iSCSI connection. 
 $THT = @{
   TargetName   = $LN
-  InitiatorIds = 'DNSNAME:SRV1.Reskit.Org'
+  InitiatorIds = 'DNSNAME:FS1.Reskit.Org'
 }
 New-IscsiServerTarget @THT
 
 # 6. Create iSCSI disk target mapping:
 Add-IscsiVirtualDiskTargetMapping -TargetName $LN -Path $LP
+
+
+
+# Undo:
+Get-IscsiServerTarget | Remove-IscsiServerTarget
+Get-IscsiVirtualDisk | Remove-IscsiVirtualDisk
+Remove-item $LP
