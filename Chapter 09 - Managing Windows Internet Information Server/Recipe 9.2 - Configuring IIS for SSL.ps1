@@ -1,27 +1,33 @@
-﻿# Revipe 10-2 - Configure IIS for SSL
+﻿# Revipe 10-2 - Configure IIS for SSL/TLS
 
 # 1 - Import the WebAdministration module
 Import-Module -Name WebAdministration
 
 # 2 - Create a self signed certificate
 $CHT = @{
-        CertStoreLocation = 'CERT:\LocalMachine\MY'
-        DnsName           = 'SRV1.Reskit.Org'
+  CertStoreLocation = 'CERT:\LocalMachine\MY'
+  DnsName           = 'SRV1.Reskit.Org'
 }
 $SSLCert = New-SelfSignedCertificate @CHT
 
 # 3. Copy the certificate to the root store on SRV1:
 $C = 'System.Security.Cryptography.X509Certificates.X509Store'
-$Store = New-Object -TypeName $C ` -ArgumentList 'Root','LocalMachine'
+$AL = ‘Root’, ‘LocalMachine’
+$Store = New-Object -TypeName $C -ArgumentList $AL
 $Store.Open(‘ReadWrite’)
 $Store.Add($SSLcert)
 $Store.Close()
 
 # 4. Create a new SSL binding on the Default Web Site
-New-WebBinding -Name 'Default Web Site' -Protocol https -Port 443
+$NBHT = @{
+  Name     = 'Default Web Site' 
+  Protocol = 'https'
+  Port     = 443
+}
+New-WebBinding @NBHT
 
 # 5 ASssign the cert created earlier to this new binding
-$sslcert | New-Item -Path IIS:\SslBindings\0.0.0.0!443
+$SSLCert | New-Item -Path IIS:\SslBindings\0.0.0.0!443
 
 # 6. View the site using https!
 $IE  = New-Object -ComObject InterNetExplorer.Application
@@ -37,3 +43,10 @@ ls Cert:\LocalMachine\MY   | WHERE SUBJECT -MATCH 'SRV1.RESKIT.ORG' | ri
 ls Cert:\LocalMachine\ROOT | WHERE SUBJECT -MATCH 'SRV1.RESKIT.ORG' | ri
 ls IIS:\SslBindings | where port -eq 443 | ri
 remove-webbinding -Protocol https
+
+
+
+$C = 'System.Security.Cryptography.X509Certificates.X509Store'
+$AL = ‘Root’, ‘LocalMachine’
+$Store = New-Object -TypeName $C -ArgumentList $AL
+$Store.Open(‘ReadWrite’)
