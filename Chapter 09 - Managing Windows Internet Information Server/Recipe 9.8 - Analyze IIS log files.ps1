@@ -1,58 +1,44 @@
-﻿# Recipe 10-8 - Managing and monitoring network load balancing
-# 1. Install NLB locally on NLB1, them remotely on NLB2:
-$IHT = @{
-    Name  = 'MLB'
-    IncludeManagementTools = $True
-    IncludeAllSubFeature   = $True
-}
-Install-WindowsFeature @IHT
+﻿#
+# Originally from: "http://sbrickey.com/Tech/Blog/Post/Parsing_IIS_Logs_with_PowerShell"
+#
 
-Install-WindowsFeature @IHT -ComputerName NLB2
+# Define the location of log files and a temporary file
+$LogFolder = "C:\inetpub\logs\LogFiles\W3SVC1"
+$LogFiles = Get-ChildItem $LogFolder\*.log -Recurse
+$LogTemp = "C:\inetpub\logs\LogFiles\W3SVC1\AllLogs.tmp"
 
-# 2. Confirm NLB and Web-Server features are loaded on both systems:
-Invoke-Command -ScriptBlock {Get-WindowsFeature Web-Server, NLB} `
-               -ComputerName NLB1, NLB2 |
-Format-table -Property DisplayName,PSComputername,InstallstateManaging Internet Information Server
+# Logs will store each line of the log files in an array
+$Logs = @()
+# Skip the comment lines
+$LogFiles | % { Get-Content $_ | 
+  Where-Object {$_ -notLike "#[D,F,S,V]*" } | 
+    Foreach { $Logs += $_ } }
+# Then grab the first header line, and adjust its format for later
+$LogColumns = ( $LogFiles | 
+               Select-Object -First 1 | 
+                 Foreach { Get-Content $_ | 
+                   Where-Object {$_ -Like "#[F]*" } } ) -replace "#Fields: ", "" -replace "-","" -replace "\(","" -replace "\)",""
 
-# 3. Create the NLB cluster, initially on NLB1:
-New-NlbCluster -InterfaceName Ethernet `
-    -ClusterName 'ReskitNLB' `
-    -ClusterPrimaryIP 10.10.10.55 `
-    -SubnetMask 255.255.255.0 `
-    -OperationMode Multicast
-# 4. Add NLB2 to the ReskitNLB cluster:
-Add-NlbClusterNode -NewNodeName NLB2 `
-    -NewNodeInterface 'Ethernet' `
-    -InterfaceName 'Ethernet'
+# Temporarily, store the reformatted logs
+Set-Content -LiteralPath $LogTemp -Value ( [System.String]::Format("{0}{1}{2}", $LogColumns, [Environment]::NewLine, ( [System.String]::Join( [Environment]::NewLine, $Logs) ) ) )
 
-# 5. Create a network firewall rule:
-Invoke-Command -ComputerName NLB2 {
-Set-NetFirewallRule -DisplayGroup 'File and
-Printer Sharing' `
-    -Enabled True
-}
+# Read the reformatted logs as a CSV file
+$Logs = Import-Csv -Path $LogTemp -Delimiter " "
 
-# 6. Create a default document—differently on each machine:
-'NLB Cluster: Hosted on NLB1' |
-    Out-File -FilePath C:\inetpub\wwwroot\index.html
-'NLB Cluster: Greetings from NLB2' |
-    Out-File -FilePath \\nlb2\c$\inetpub\wwwroot\index.html
+# View Client IP addresses
+$Logs | 
+  Sort-Object -Property cip | 
+    Select-Object -Property CIP -Unique
 
-    # 7. Add a DNS A record for the cluster:
-$sb = {
-Add-DnsServerResourceRecordA -Name ReskitNLB `
--IPv4Address 10.10.10.55 `
--zonename Reskit.Org}
-Invoke-Command -ComputerName DC1 -ScriptBlock $sb
 
-# 8. View the NLB site (do this on DC1):
-Start-Process 'http://ReskitNLB.reskit.org'
+# View clients
 
-# 9. Stop one node (the one that responded in step 8!):
-Stop-NlbClusterNode -HostName NLB1Managing Internet Information Server
+$Logs | 
+  Sort-Object -property csUserAgent | 
+    Select-Object -Property csUserAgent -Unique
+$Logs | 
+  Sort-Object -Property csUserAgent |
+    Group-Object csuseragent | 
+      Sort-object -Property Count -Desc | 
+        Format-Table -Property Count, Name
 
-# 10. Then view the site again:
-$IE = New-Object -ComObject InterNetExplorer.Application
-$URL = 'http://ReskitNLB.reskit.org'
-$IE.Navigate2($URL)
-$IE.Visible = $true
