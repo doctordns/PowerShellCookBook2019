@@ -38,15 +38,9 @@ $IE.Visible = $true
 
 
 
-#  cLEAN UP
+<#  cLEAN UP for testing
 ls Cert:\LocalMachine\MY   | WHERE SUBJECT -MATCH 'SRV1.RESKIT.ORG' | ri
 ls Cert:\LocalMachine\ROOT | WHERE SUBJECT -MATCH 'SRV1.RESKIT.ORG' | ri
 ls IIS:\SslBindings | where port -eq 443 | ri
 remove-webbinding -Protocol https
-
-
-
-$C = 'System.Security.Cryptography.X509Certificates.X509Store'
-$AL = ‘Root’, ‘LocalMachine’
-$Store = New-Object -TypeName $C -ArgumentList $AL
-$Store.Open(‘ReadWrite’)
+#>
