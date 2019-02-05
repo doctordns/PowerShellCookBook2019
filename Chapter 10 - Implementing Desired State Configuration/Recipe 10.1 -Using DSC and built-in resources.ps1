@@ -19,7 +19,8 @@ $Index = @"
 Main Page - ReskitApp Application</title></head>
 <body><p><center><b>
 HOME PAGE FOR RESKITAPP APPLICATION</b></p>
-This is the root page of the RESKITAPP application<b>
+This is the root page of the RESKITAPP application
+<br><hr>
 Pushed via DSC</p><br><hr>
 <a href="http://srv2/reskitapp/Page2.htm">
 Click to View Page 2</a>
@@ -27,15 +28,17 @@ Click to View Page 2</a>
 <br><hr></body></html>
 "@
 $Index | 
-  Out-File -FilePath $HP -Force
+   Out-File -FilePath $HP -Force
 # create page2.htm
 $P2 = '\\DC1.Reskit.Org\C$\Reskitapp\Page2.htm'
 $Page2 = @"
 <!DOCTYPE html>
 <html>
-<head><title>Main Page - ReskitApp Application</title></head>
+<head><title>ReskitApp Application - Page 2</title></head>
 <body><p><center>
-<b>HOME PAGE FOR RESKITAPP APPLICATION</b></p>
+<b>Page 2 For the ReskitApp Web Application</b></p>
+<a href="http://srv2/reskitapp/index.htm">
+Click to Go Home</a>
 <hr></body></html>
 "@
 $Page2 | 

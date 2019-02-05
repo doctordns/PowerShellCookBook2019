@@ -1,132 +1,141 @@
-﻿# Recipe 13-8  Partial Configuration
+﻿# Recipe 13.8  Partial Configuration
+#
 # Run on SRV1
 
-# 0. Remove any earlier attempts here and bring state on SRV1 back to 'normal.
-Remove-WindowsFeature web-server -IncludeManagementTools 
-Remove-Item C:\DSCResource -Force
-Remove-Item C:\DSCConfiguration
-Remove-Item C:\DSC  -Force -Recurse
-Remove-Item C:\inetpub\wwwroot\PSDSCPullServer -Recurse
-
-
-# 1. Create a Self-Signed Certificate On SRV1, copy to root, and display
-#    And put it into the MY certs, then copy to Root
-Get-ChildItem Cert:LocalMachine\My | 
-    Where-Object Subject -eq 'CN=SRV1' |
-        Remove-Item -Force
-Get-ChildItem Cert:LocalMachine\root |
-    Where-Object Subject -eq 'CN=SRV1' |
-        Remove-Item -Force
+# 1. Remove existing certificates for SRV1, then create Self-Signed Certificate for SRV1.
+Get-ChildItem cert:\LocalMachine\root |
+  Where Subject -EQ 'CN=SRV1.Reskit.org' | 
+    Remove-Item -Force
+Get-ChildItem cert:\LocalMachine\my |
+  Where Subject -EQ 'CN=SRV1.Reskit.Org' | 
+    Remove-Item -Force
 $CHT = @{
-    CertStoreLocation = 'CERT:\LocalMachine\MY'
-    DnsName           = 'SRV1' 
+  CertStoreLocation = 'CERT:\LocalMachine\MY'
+  DnsName           = 'SRV1.Reskit.Org'
 }
 $DscCert = New-SelfSignedCertificate @CHT
-# copy it to Root CA (make the cert 'trusted')       
-$C = 'System.Security.Cryptography.X509Certificates.X509Store'
-$Store = New-Object -TypeName $C -ArgumentList 'Root','LocalMachine'
-$Store.Open('ReadWrite')
-$Store.Add($Dsccert)
-$Store.Close()
-$DscCert
 
-#2. Copy the cert to the root store on SRV2 and ensure it's the only one!
-$Sb = {
+# 2. Copy the cert to the root store on SRV2 and SRV1:
+$SB1 = {
   Param ($Rootcert) 
-  Get-ChildItem Cert:LocalMachine\Root | 
-      Where-Object Subject -eq 'CN=SRV1' |
-          Remove-Item -Force
-  $NOHT  = @{         
-  Typename     = 'System.Security.Cryptography.X509Certificates.X509Store'
-  ArgumentList = ('Root','LocalMachine')
+  $C = 'System.Security.Cryptography.X509Certificates.X509Store'
+  $NOHT = @{
+    TypeName     = $C
+    ArgumentList = @('Root','LocalMachine')
   }
   $Store = New-Object @NOHT
   $Store.Open('ReadWrite')
   $Store.Add($Rootcert)
   $Store.Close()
-} # End script block
-$ICHT = @{
-ScriptBlock  = $Sb 
-ComputerName = 'SRV2 '
-Verbose      = $true
-ArgumentList = $DscCert
 }
-Invoke-Command @ICHT
+$ICHT1 = @{
+  ScriptBlock  = $SB1 
+  ComputerName = 'SRV2.Reskit.Org'
+  ArgumentList = $DscCert
+}
+# run script block on SRV2
+Invoke-Command @ICHT1
+# and copy it to root on SRV1
+$ICHT2= @{
+  ScriptBlock  = $SB1 
+  ComputerName = 'SRV1.Reskit.Org'
+  Verbose      = $True 
+  ArgumentList = $DscCert
+}
+Invoke-Command @ICHT2
 
 # 3. Check Cert on SRV2
-Invoke-Command -ScriptBlock {Get-ChildItem Cert:\LocalMachine\root | 
-    Where-Object Subject -Match 'SRV1'} -ComputerName SRV2
-
-# 4. Check that xPsDesiredStateConfiguration module is installed on both 
-#    SRV1 and SRV2
-$ModPath = Join-Path `
-       -Path 'C:\Program Files\WindowsPowerShell\Modules' `
-       -ChildPath  ‘xPSDesiredStateConfiguration' 
-Copy-Item -Path $ModPath `
-       -Destination '\\SRV2\C$\Program Files\WindowsPowerShell\Modules' `
-       -Recurse -ErrorAction SilentlyContinue
-Get-Module xPSDesiredStateConfiguration -ListAvailable
-Invoke-Command -ComputerName SRV2 `
-               -ScriptBlock {Get-Module xPSDesiredStateConfiguration `
-                                          -ListAvailable}
-
-
-# 5. Create and compile DSC Service Configuration block for SRV1
-Configuration WebPullSrv1 {
-Param ([String] $CertThumbPrint)
-Import-DscResource -Module PSDesiredStateConfiguration
-
-$Regfile= 'C:\Program Files\WindowsPowerShell\DscService\'+
-          ‘RegistrationKeys.txt'
-Node SRV1 {
-    File DSCConfig-Folder{
-        DestinationPath   = 'C:\DSCConfiguration'
-        Ensure            = 'Present'
-        Type              = 'Directory' }
-    File DSCResource-Folder{
-        DestinationPath   = 'C:\DSCResource'
-        Ensure            = 'Present'
-        Type              = 'Directory' }
-    WindowsFeature DSCService {
-        Ensure               =  'Present'
-        Name                 =  'DSC-Service' }
-    xDscWebService WebPullSRV1 {
-       Ensure                = 'Present'
-       EndpointName          = 'PSDSCPullServer'
-       Port                  = 8080
-       PhysicalPath          = 'C:\inetpub\PSDSCPullServer'
-       CertificateThumbPrint = $CertThumbPrint   
-       ConfigurationPath     = 'C:\DSCConfiguration'
-       ModulePath            = 'C:\DSCResource'
-       State                 = 'Started'
-       DependsOn             = '[WindowsFeature]DSCService'
-       UseSecurityBestPractices = $true  }
-    File RegistrationKeyFile {
-       Ensure                = 'Present'
-       Type                  = 'File'
-       DestinationPath       = $Regfile
-       Contents              = '5d79ee6e-0420-4c98-9cc3-9f696901a816'  }
-  }
+$SB2 = {
+  Get-ChildItem Cert:\LocalMachine\root | 
+    Where-Object Subject -Match 'SRV1.Reskit.Org' 
 }
+Invoke-Command -ScriptBlock $SB2 -ComputerName SRV2
 
-# 6. Remove existing MOF Files then create MOF file for SRV1
+# 4. Remove existing configuration on SRV1, SRV2
+$SB3 = {
+  $RIHT = @{
+    Path        = 'C:\Windows\System32\configuration\*.mof'
+    ErrorAction = 'SilentlyContinue'
+  }
+  Get-Childitem @RIHT |
+    Remove-Item @RIHT -Force
+  $EASC = @{
+    ErrorAction = 'SilentlyContinue'
+  }
+  New-Item -Path c:\DSC -ItemType Directory @EASC | 
+    Out-Null
+  Remove-DscConfigurationDocument -Stage Current
+}
+Invoke-Command -ComputerName SRV1 -ScriptBlock $SB3
+Invoke-Command -ComputerName SRV2 -ScriptBlock $SB3
+
+# 5. Check that xPsDesiredStateConfiguration module is installed on both 
+#    SRV1 and SRV2
+$SB2 = {
+  Install-Module -Name xPSDesiredStateConfiguration -Force
+}
+Invoke-Command -Computer SRV1 -ScriptBlock $SB2
+Invoke-Command -Computer SRV2 -ScriptBlock $SB2
+
+# 6. Create and compile DSC Service Configuration block for SRV1
+Configuration WebPullSrv1 {
+  Param ([String] $CertThumbPrint)
+  Import-DscResource -Module PSDesiredStateConfiguration
+  Import-DscResource -Module xPSDesiredStateConfiguration
+  $Regfile= 'C:\Program Files\WindowsPowerShell\DscService\'+
+            ‘RegistrationKeys.txt'
+Node SRV1 {
+   $Key = '5d79ee6e-0420-4c98-9cc3-9f696901a816'
+   WindowsFeature IIS1 {
+     Ensure           = 'Present'
+     Name             = 'Web-Server'
+   }
+    File DSCConfig-Folder {
+    DestinationPath   = 'C:\DSCConfiguration'
+    Ensure            = 'Present'
+    Type              = 'Directory' }
+  File DSCResource-Folder{
+    DestinationPath   = 'C:\DSCResource'
+    Ensure            = 'Present'
+    Type              = 'Directory' }
+  WindowsFeature DSCService {
+    DependsOn          =  '[WindowsFeature]IIS1'   
+    Ensure             =  'Present'
+    Name               =  'DSC-Service' }
+  xDscWebService WebPullSRV1 {
+    Ensure             = 'Present'
+    EndpointName       = 'PSDSCPullServer'
+    Port               = 8080
+    PhysicalPath       = 'C:\inetpub\PSDSCPullServer'
+    CertificateThumbPrint = $CertThumbPrint   
+    ConfigurationPath  = 'C:\DSCConfiguration'
+    ModulePath         = 'C:\DSCResource'
+    State              = 'Started'
+    DependsOn          = '[WindowsFeature]DSCService','[WindowsFeature]IIS1'
+    UseSecurityBestPractices = $true  }
+  File RegistrationKeyFile {
+    Ensure                = 'Present'
+    Type                  = 'File'
+    DestinationPath       = $Regfile
+    Contents              = $Key  }
+ } # End of Node configuration 
+} # End of Confiuration
+
+# 7. Remove any existing MOF Files on SRV1 then create MOF file for SRV1
 Get-ChildItem -Path C:\DSC -ErrorAction SilentlyContinue | 
     Remove-Item -Force | Out-Null
-Remove-Item -Path 'C:\Windows\System32\configuration\*.mof' `
-            -ErrorAction SilentlyContinue
 WebPullSrv1 -OutputPath C:\DSC  -CertThumbPrint $DscCert.Thumbprint
 
-# 7. Add Web Service to SRV1
+# 8. Configure SRV1 to host DSC Web Service
 Start-DscConfiguration -Path C:\DSC -Wait -Verbose
+Import-Module -Name WebAdministration
+$DscCert | Set-Item -Path IIS:\SslBindings\0.0.0.0!8080
 
-# 8. Check on the results!
-#  Note this causes an IE error - but just click to bypass
-$IE  = New-Object -ComObject InterNetExplorer.Application
-$Uri = 'https://SRV1:8080/PSDSCPullServer.svc/' 
-$IE.Navigate2($Uri)
-$IE.Visible = $true
+# 9. Check on the results!
+$URI = 'https://SRV1.Reskit.Org:8080/PSDSCPullServer.svc/' 
+Start-Process -FilePath $URI
 
-# 9. Create a meta configuration to make SRV2 pull from SRV1:
+# 10. Create a meta configuration to make SRV2 pull two partial configuration blocks from SRV1:
 [DSCLocalConfigurationManager()]
 Configuration SRV2WebPullPartial {
 Node Srv2 {
@@ -137,52 +146,63 @@ Node Srv2 {
          RefreshFrequencyMins = 30 
          RebootNodeIfNeeded   = $true 
          AllowModuleOverwrite = $true }
-  ConfigurationRepositoryWeb DSCPullSrv
-     {   ServerURL = 'https://SRV1:8080/PSDSCPullServer.svc'
-         RegistrationKey = '5d79ee6e-0420-4c98-9cc3-9f696901a816'
-         ConfigurationNames = @('TelnetConfig','TFTPConfig')  }
-  PartialConfiguration TelnetConfig
-     {  Description = 'Telnet Client Configuration'
-        Configurationsource = @('[ConfigurationRepositoryWeb]DSCPullSrv')}
-  PartialConfiguration TFTPConfig {
-        Description = 'TFTP Client Configuration'
-        Configurationsource = @('[ConfigurationRepositoryWeb]DSCPullSrv')
-        DependsOn   = '[PartialConfiguration]TelnetConfig'}
-  } 
+  ConfigurationRepositoryWeb DSCPullSrv {
+    ServerURL = 'HTTPS://SRV1.Reskit.Org:8080/PSDSCPullServer.svc'
+    RegistrationKey = '5d79ee6e-0420-4c98-9cc3-9f696901a816'
+    ConfigurationNames = @('NFSConfig','SMBConfig') }
+  PartialConfiguration NFSConfig {
+    Description = 'NFS Client Configuration'
+    Configurationsource = @('[ConfigurationRepositoryWeb]DSCPullSrv')}
+  PartialConfiguration SMBConfig {
+    Description = 'FS-SMB1 Client Removal'
+    Configurationsource = @('[ConfigurationRepositoryWeb]DSCPullSrv')
+    DependsOn   = '[PartialConfiguration]NFSConfig'
+  }
+ } # End Node 2 Configuration 
 }
 
-# 10. Create MOF to config DSC LCM on SRV2
-Remove-Item C:\DSCConfiguration\* -Rec -Force 
-Remove-Item '\\SRV2\C$\Windows\System32\Configuration\*.mof'
+# 11. Create MOF to config DSC LCM on SRV2
 SRV2WebPullPartial -OutputPath C:\DSC | Out-Null
 
-# 11.  Config LCM on SRV2:
+# 12.  Config LCM on SRV2:
 $CSSrv2 = New-CimSession -ComputerName SRV2
-Set-DscLocalConfigurationManager -CimSession $CSSrv2 `
-                                 -Path C:\DSC `
-                                 -Verbose
+$LCMHT = @{
+  CimSession = $CSSrv2
+  Path       = 'C:\DSC'
+  Verbose    = $true
+}
+Set-DscLocalConfigurationManager @LCMHT
 
-# 12. Create/compile the Telnet Client partial configuration, 
+# 13. Create/compile the NFS Client partial configuration, 
 #     and build MOF
 $Guid = '5d79ee6e-0420-4c98-9cc3-9f696901a816'
 $ConfigData = @{
-   AllNodes = @(
-      @{ NodeName = '*' ; PsDscAllowPlainTextPassword = $true},
-      @{ NodeName = $Guid }
-   )
+  AllNodes  = @(
+    @{ NodeName = '*' ; PsDscAllowPlainTextPassword = $true},
+    @{ NodeName = $Guid }
+  )
 }
-Configuration  TelnetConfig {
-Import-DscResource –ModuleName PSDesiredStateConfiguration
-Node $Allnodes.NodeName {
-  WindowsFeature TelnetClient
-    { Name     = 'Telnet-Client'
-      Ensure   = 'Present'  }
-    }
+Configuration  NFSConfig {
+  Import-DscResource –ModuleName PSDesiredStateConfiguration
+  Node $Allnodes.NodeName {
+    WindowsFeature NFSClientPresent { 
+      Name     = 'NFS-Client'
+      Ensure   = 'Present'  
+    }    
+  }
 }
-TelnetConfig -ConfigurationData $ConfigData -OutputPath C:\DSCConfiguration | Out-Null
-Rename-Item  -Path "C:\DSCConfiguration\$Guid.mof" -newname 'c:\DSCConfiguration\TelnetConfig.Mof'
+$CHT1 = @{
+  ConfigurationData = $ConfigData
+  OutputPath        = 'C:\DSCConfiguration'
+}
+NFSConfig @CHT1 
+$RIHT = @{
+  Path     = "C:\DSCConfiguration\$Guid.mof"
+  Newname  = 'C:\DSCConfiguration\NFSConfig.MOF'
+}
+Rename-Item  @RIHT
 
-# 13. Create and compile the TFTP client partial configuration
+# 14. Create and compile the SMB client partial configuration which ensures SMB is Absent
 $Guid = '5d79ee6e-0420-4c98-9cc3-9f696901a816'
 $ConfigData = @{
    AllNodes = @(
@@ -190,47 +210,34 @@ $ConfigData = @{
       @{ NodeName = $Guid }
    )
 }
-Configuration  TFTPConfig {
-Import-DscResource –ModuleName 'PSDesiredStateConfiguration'
-Node $AllNodes.NodeName {
-WindowsFeature TFTPClient
-    { Name     = 'TFTP-Client'
-      Ensure   = 'Present'  }
-    }
+Configuration  SMBConfig {
+  Import-DscResource –ModuleName 'PSDesiredStateConfiguration'
+  Node $AllNodes.NodeName {
+  WindowsFeature SMB1 {
+    Name   = 'FS-SMB1'
+    Ensure = 'Absent'
+  }
 }
-$TCHT = @{
-ConfigurationData = $ConfigData 
-OutputPath        = 'C:\DSCConfiguration\'  
 }
-TFTPConfig @TCHT |  Out-Null
+$SMBHT = @{
+  ConfigurationData = $ConfigData 
+  OutputPath        = 'C:\DSCConfiguration\'  
+}
+SMBConfig @SMBHT |  Out-Null
 $RIHT =  @{
-Path    = "c:\DSCConfiguration\$Guid.mof" 
-NewName = 'TFTPConfig.Mof'
+  Path    = "C:\DSCConfiguration\$Guid.mof" 
+  NewName = 'C:\DSCConfiguration\SMBConfig.Mof'
 }
 Rename-Item  @RIHT
 
-# 14. Create Checksums for these two partial configurations
+# 15. Create Checksums for these two partial configurations
 New-DscChecksum -Path C:\DSCConfiguration
 
-# 15. Observe configuration documents and checksum
+# 16. Observe configuration documents and checksum
 Get-ChildItem -Path C:\DSCConfiguration
 
-# 16.  Update it on SRV2
-Update-DscConfiguration -ComputerName SRV2 -Wait -Verbose
-Test-DSCConfiguration -ComputerName SRV2
-
-# 17. Induce configuration drift
-$RFHT = @{
-Name          = ('tftp-client', 'telnet-client')
-ComputerName  = 'SRV2'
-}
-Remove-WindowsFeature @RFHT
-
+# 17. Check status
+Get-WindowsFeature -ComputerName SRV2 -Name 'FS-SMB1',
+                                            'NFS-Client' 
 # 18. Test DSC configuration
-Test-DscConfiguration -ComputerName SRV2
-
-# 19. Fix
-Start-DscConfiguration -UseExisting -Verbose -Wait -ComputerName SRV2
-
-# 20. Test
-Get-WindowsFeature -Name Telnet-Client, TFTP-Client -ComputerName SRV2
+Test-DscConfiguration -ComputerName SRV2  -Verbose
