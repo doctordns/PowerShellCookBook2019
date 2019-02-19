@@ -5,14 +5,16 @@ $Locname    = 'uksouth'     # location name
 $RgName     = 'packt_rg'    # resource group we are using
 $SAName     = 'packt42sa'   # storage account name
 $AppSrvName = 'packt42'
-$AppName    = 'packt42'
+$AppName    = 'packt42website'
 
 # 2. Login to your Azure Account and ensure RG exists
 $CredAZ = Get-Credential
 Login-AzAccount -Credential $CredAz
+
+# 3. Ensure Resource Group is created
 $RGHT1 = @{
-      Name        = $RgName
-#      ErrorAction = 'Silentlycontinue'
+  Name        = $RgName
+  ErrorAction = 'Silentlycontinue'
 }
 $RG = Get-AzResourceGroup @RGHT1
 if (-not $RG) {
@@ -27,8 +29,13 @@ if (-not $RG) {
   Write-Host "RG $RgName created"
 }
 
-#3.  ENSURE the  SA is created.
-$SA = Get-AzStorageAccount -Name $SAName -ResourceGroupName $RgName -ErrorAction SilentlyContinue
+# 4.  Ensure the  Stoage Account is created.
+$SAHT = @{
+  Name              = $SAName
+  ResourceGroupName = $RgName 
+  ErrorAction       = 'SilentlyContinue'
+}
+$SA = Get-AzStorageAccount @SAHT
 if (-not $SA) {
   $SATag  = [Ordered] @{Publisher='Packt'}
   $SATag +=           @{Author='Thomas Lee'}
@@ -43,7 +50,7 @@ if (-not $SA) {
   "SA $SAName created"
 }
 
-# 4. Create app service plan
+# 5. Create app service plan
 $SPHT = @{
      ResourceGroupName   = $RgName
      Name                = $AppSrvName
@@ -52,54 +59,76 @@ $SPHT = @{
 }
 New-AzAppServicePlan @SPHT |  Out-Null
 
-# 5. View the service plan
-Get-AzAppServicePlan -ResourceGroupName $RGname -Name $AppSrvName
+# 6. View the service plan
+$PHT = @{
+  ResourceGroupName = $RGname 
+  Name              = $AppSrvName
+}
+Get-AzAppServicePlan @PHT
 
-# 6. Create the new azure webapp
-New-AzWebApp -ResourceGroupName $RgName -Name $AppSrvName `
-                -AppServicePlan $AppSrvName -Location $Locname |
-                    Out-Null
+# 7. Create the new azure webapp
+$WAHT = @{
+  ResourceGroupName = $RgName 
+  Name              = $AppName
+  AppServicePlan    = $AppSrvName
+  Location          = $Locname
+}
+New-AzWebApp @WAHT |  Out-Null
 
-# 7. View application details
-$WebApp = Get-AzWebApp -ResourceGroupName $RgName -Name $AppSrvName
-$WebApp
+# 8. View application details
+$WebApp = Get-AzWebApp -ResourceGroupName $RgName -Name $AppName
+$WebApp | 
+  Format-Table -Property Name, State, Hostnames, Location
 
-# 8 Now see the web site
+# 9 Now see the web site
 $SiteUrl = "https://$($WebApp.DefaultHostName)"
 $IE  = New-Object -ComObject InterNetExplorer.Application
 $IE.Navigate2($SiteUrl)
 $IE.Visible = $true
 
+# 10. Install the PSFTP module
+Install-module PSFTP -Force | Out-Null
+Import-Module PSFTP
 
-# 9. Install the psftp module
-Install-module PSFTP -Force
-
-# 10.  Get publishing profile XML and extract FTP upload details
+# 11.  Get publishing profile XML and extract FTP upload details
 $APHT = @{
   ResourceGroupName = $RgName
-  Name              = $AppSrvName  
+  Name              = $AppName  
   OutputFile        = 'C:\Foo\pdata.txt'
 }
 $x = [xml] (Get-AzWebAppPublishingProfile @APHT)
 $x.publishData.publishProfile[1]
 
-# 11. Extract crededentials and site details
+# 12. Extract crededentials and site details
 $UserName = $x.publishData.publishProfile[1].userName
 $UserPwd  = $x.publishData.publishProfile[1].userPWD
 $Site     = $x.publishData.publishProfile[1].publishUrl
 
-# 12 connect
-$PS = ConvertTo-SecureString $UserPWD -AsPlainText -Force
-$Cred = New-Object System.Management.automation.PSCredential $UserName,$PS
-Set-FTPConnection -Credentials $Cred -Server $Site -Session 'First upload' -UsePassive 
-$Session = Get-FTPConnection -Session 'First upload'
+# 13. Connect to the FTP site
+$FTPSN  = 'FTPtoAzure'
+$PS     = ConvertTo-SecureString $UserPWD -AsPlainText -Force
+$T      = 'System.Management.automation.PSCredentiaL'
+$Cred   = New-Object -TypeName $T -ArgumentList $UserName,$PS
+$FTPHT  = @{
+  Credentials = $Cred 
+  Server      = $Site 
+  Session     = $FTPSN
+  UsePassive  = $true
+}
+Set-FTPConnection @FTPHT
+$Session = Get-FTPConnection -Session $FTPSN
 
-# 13. Create a Web Page
-'Azure web site' | Out-File -FilePath c:\foo\index.html
+# 15. Create a Web Page and upload it
+'My First Azure Web Site' | Out-File -FilePath C:\Foo\Index.Html
 $Filename = 'C:\foo\index.html'
-Add-FTPItem -Path '/' -LocalPath C:\foo\index.html -Session 'First upload'
+$IHT = @{
+  Path       = '/'
+  LocalPath  = 'C:\foo\index.html'
+  Session    = $FTPSN
+}
+Add-FTPItem @IHT
 
 
-# 14. NOW look at the site!
+# 16. NoW look at the site using default browser (Chrome):
 $SiteUrl = "https://$($WebApp.DefaultHostName)"
 Start-Process -FilePath $SiteUrl
