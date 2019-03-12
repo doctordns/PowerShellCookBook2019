@@ -1,15 +1,20 @@
-# Learn Windows Server 2019
+# Windows Server 2019 Automation with PowerShell Cookbook
 
-TO DO: Insert a photo of the book cover.
+"[Book Cover](https://images-na.ssl-images-amazon.com/images/I/51qF51boJoL._SX404_BO1,204,203,200_.jpg)
 
 ## Introduction
 
 This is the code repository for Administering Windows Server 2019 with PowerShell Cookbook, published by Packt.
 This repository is based on the [author's personal GitHub repository](https://github.com/doctordns/PowerShellCookBook2019).
 
+## Current status
+
+This repo contains final working code. During the production process, some printed code has been improved for layout. 
+So some changes are to be expected
+
 ** Write, deploy, and maintain your Server 2019 **
 
-## What This Book is About
+## What This Book is About:
 
 ... intro
 
@@ -17,7 +22,7 @@ This book covers the following:
 
 TODO: Add list of chapters
 
-If you feel this book is for you, get your [copy](https://www.amazon.com/dp/1789134323) today!
+If you feel this book is for you, get your [copy](https://smile.amazon.com/Windows-Server-Automation-PowerShell-Cookbook/dp/1789808537/ref=sr_1_3?ie=UTF8&qid=1551353410&sr=8-3 orhttps://smile.amazon.co.uk/Windows-Server-Automation-PowerShell-Cookbook/dp/1789808537/ref=sr_1_3?ie=UTF8&qid=1551353410&sr=8-3 ) today!
 
 ## Instructions and Navigation
 
@@ -26,7 +31,7 @@ Each folder contains the recipes in a chapter of the book.
 
 The PowerShell code in each recipe looks like the following:
 
-```powerShell
+```powershell
 $JG420 = Get-ADUser -Identity 'JerryGarcia'
 If ($JG420.enabled) {
 "User [$($JG402.SAMACCOUNTNAME)] is enabled
