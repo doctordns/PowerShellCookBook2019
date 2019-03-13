@@ -84,7 +84,7 @@ With the following software and hardware list you can run all code files present
 ### Software and Hardware List
 
 | Chapter | Software required | OS required |Hardware|
-| -------- | ------------------------------------ | ----------------------------------- |
+| -------- | ------------------------------------ | ----------------------------------- |-------------|
 | ALL | Any text editor, Visual Studio Code, and Windows PowerShell 5.1 | Computer with Windows 10 (latest) Or Windows Server 2019 - both 64 bit edition.|Any 64-bit computer capable of running Hyper-V (Intel or AMD) plus at leasst 8 GB of RAM.
 
 ## Get to Know the Author
