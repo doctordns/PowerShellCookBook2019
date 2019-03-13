@@ -49,7 +49,7 @@ He's a wonderful guy. Really!!
 
 ## Other book by the author
 
-See Thomas's ![Amazon Author Page](https://www.amazon.com/Thomas-Lee/e/B0034Q5CM8?ref_=pe_1724030_132998060)
+See Thomas's [Amazon Author Page](https://www.amazon.com/Thomas-Lee/e/B0034Q5CM8?ref_=pe_1724030_132998060)
 
 ### Suggestions and Feedback
 
