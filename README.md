@@ -1,6 +1,6 @@
 # Windows Server 2019 Automation with PowerShell Cookbook
 
-"[Book Cover](https://images-na.ssl-images-amazon.com/images/I/51qF51boJoL._SX404_BO1,204,203,200_.jpg)
+![Book Cover](https://images-na.ssl-images-amazon.com/images/I/51qF51boJoL._SX404_BO1,204,203,200_.jpg)
 
 ## Introduction
 
