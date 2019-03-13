@@ -16,10 +16,10 @@ This book takes you through the use of PowerShell in a variety of scenarios usin
 
 This book contains the following chapters:
 
-Chapter 1, Establishing a PowerShell Administrative Environment looks at setting up your
+**Chapter 1, Establishing a PowerShell Administrative Environment** looks at setting up your
 work station and your environment to make use of PowerShell.
 
-Chapter 2, Managing Windows Networking shows you how to manage Windows networking
+**Chapter 2, Managing Windows Networking** shows you how to manage Windows networking
 with PowerShell. Networks are today central to almost every organization and this chapter
 looks at a variety of network-related tasks, including looking at new ways (with PowerShell) to
 do old things, setting up DNS, DHCP, and Active directory.
