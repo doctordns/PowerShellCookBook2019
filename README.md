@@ -17,7 +17,7 @@ This book takes you through the use of PowerShell in a variety of scenarios usin
 This book contains the following chapters:
 
 
-If you feel this book is for you, get your ![copy](https://smile.amazon.com/Windows-Server-Automation-PowerShell-Cookbook/dp/1789808537/ref=sr_1_3?ie=UTF8&qid=1551353410&sr=8-3) or ![if you are in the UK]()https://smile.amazon.co.uk/Windows-Server-Automation-PowerShell-Cookbook/dp/1789808537/ref=sr_1_3?ie=UTF8&qid=1551353410&sr=8-3 ).
+If you feel this book is for you, get your [copy](https://smile.amazon.com/Windows-Server-Automation-PowerShell-Cookbook/dp/1789808537/ref=sr_1_3?ie=UTF8&qid=1551353410&sr=8-3) or !if you are in the UK](https://smile.amazon.co.uk/Windows-Server-Automation-PowerShell-Cookbook/dp/1789808537/ref=sr_1_3?ie=UTF8&qid=1551353410&sr=8-3 ).
 
 ## Instructions and Navigation
 
