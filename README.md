@@ -71,7 +71,6 @@ If you feel this book is for you, get your [copy from Smile.Amazon.Com](https://
 All of the code is organized into folders.
 Each folder contains the recipes in a chapter of the book.
 
-
 ## What do you need to follow this book
 
 As the practical examples involve the use of Windows Server 2019, Windows 10 and Azure, you need access to all of these.
@@ -85,20 +84,19 @@ With the following software and hardware list you can run all code files present
 
 | Chapter | Software required | OS required |Hardware|
 | -------- | ------------------------------------ | ----------------------------------- |-------------|
-| ALL | Any text editor, Visual Studio Code, and Windows PowerShell 5.1 | Computer with Windows 10 (latest) Or Windows Server 2019 - both 64 bit edition.|Any 64-bit computer capable of running Hyper-V (Intel or AMD) plus at leasst 8 GB of RAM.
+| ALL | Any text editor, Visual Studio Code, and Windows PowerShell 5.1 | Computer with Windows 10 (latest) or Windows Server 2019 - both 64 bit edition.|Any 64-bit computer capable of running Hyper-V (Intel or AMD) plus at least 8 GB of RAM.
 
 ## Get to Know the Author
 
 **Thomas Lee** is a consultant, trainer and author.
 He has more than 50 years of experience in various software and hardware development projects for various companies across the globe.
+He lives today in and old cottage in the English countryside with his wife and daughter, a nice wine cellar, and a great collection of Live recordings of the Grateful Dead.
 
-He's a wonderful guy. Really!!
-
-## Other book by the author
+## Other book by Thomas Lee
 
 See Thomas's [Amazon Author Page](https://www.amazon.com/Thomas-Lee/e/B0034Q5CM8?ref_=pe_1724030_132998060)
 
 ### Suggestions and Feedback
 
 If you have issues with the specific recipes, file an issue at:
-[The recipe Git Hub Repository](https://github.com/doctordns/PowerShellCookBook2019/issues)
+[The recipe GitHub Repository](https://github.com/doctordns/PowerShellCookBook2019/issues)
