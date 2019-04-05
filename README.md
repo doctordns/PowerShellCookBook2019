@@ -58,6 +58,7 @@ This includes nested Hyper-V running a Hyper-V VM inside another Hyper-V VM whic
 PowerShell.
 To test the recipes in this chapter, you need access to Azure.
 This chapter describes how to setup a Virtual Machine, an Azure website and an SMB3 Azure based file share.
+There is a bonus recipe (not in the printed book) showing how to create an Azure VM from a local VHD file.
 
 **Chapter 13, Managing Performance and Usage** shows you how to measure, monitor, and report on the performance of your Windows 2019 servers. 
 There are several recipes that demonstrate how to get specific performance measurements and how to create graphs of performance for further analysis.
