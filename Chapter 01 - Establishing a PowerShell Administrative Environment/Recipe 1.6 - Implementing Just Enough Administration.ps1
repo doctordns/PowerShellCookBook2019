@@ -134,7 +134,7 @@ Get-ChildItem -Path $PSCHT.TranscriptDirectory
 
 # 14. Examine a transcript
 Get-ChildItem -Path $PSCHT.TranscriptDirectory | 
-  Select -First 1  |
+  Select-Object -First 1  |
      Get-Content
 
 
