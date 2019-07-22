@@ -3,9 +3,9 @@
 # Run from CL1
 
 # 1.  Define Variables
-$Locname = 'uksouth'      # location name
-$RgName = 'packt_rg'     # resource group we are using
-$SAName = 'packt42sa'    # storage account name
+$Locname   = 'uksouth'      # location name
+$RgName    = 'packt_rg'     # resource group we are using
+$SAName    = 'packt42sa'    # storage account name
 $ShareName = 'packtshare'   # must be lower case!
 
 # 2. Login to your Azure Account and ensure the RG and SA is created.
@@ -31,7 +31,7 @@ $T = "$SAName.file.core.windows.net"
 cmdkey /add:$T /user:"AZURE\$SAName" /pass:$Key
 
 # 5. Create a share:
-New-AzStorageShare -Name share2 -Context $SACon
+New-AzStorageShare -Name $ShareName -Context $SACon
 
 # 6. Test that Share is reachable
 $TNCHT = @{
