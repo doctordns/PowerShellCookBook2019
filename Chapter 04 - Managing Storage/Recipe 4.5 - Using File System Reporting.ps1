@@ -26,7 +26,7 @@ Invoke-item -Path $Rep
 # 5. Extract key information from the XML
 $XF   = Get-ChildItem -Path $Path\*.xml 
 $XML  = [XML] (Get-Content -Path $XF)
-$Files = $x.StorageReport.ReportData.Item
+$Files = $XML.StorageReport.ReportData.Item
 $Files | Where-Object Path -NotMatch '^Windows|^Program|^Users'|
   Format-Table -Property name, path,
   @{ name ='Sizemb'
