@@ -15,13 +15,30 @@ Page IX, 4th paragraph, second line, should read:
 
 ### Chapter 1 - Establishing a PowerShell Administrative Environment
 
+Page 11 - small error in screen shots. they should not be different.
 Page 12, 2nd Paragraph, penultimate line - the sentence should read:  "And for versions later than 1803, the
 mechanism may change again."
 And with the passage of time since the book was written, the mechanism has indeed changed again.
 
+Page 15 - Step 15 should read SRV1, not SRV2
+
 ### Chapter 2 -Managing Windows Networking
 
 Page 65/66 - Step 6 is not actually shown. The output (on page 66) is form step 7 not step 6.
+
+### Chapter 4 - Managing Windows Storage
+
+Page 134 - The code is fine in the book, but the GITHUB copy had an error in step 5 which is fixed.
+
+### Chapter 12 - Managing Azure
+
+Page 446, last paragraph in intro = this recipe does not check whether the RG and the SA are already created.
+Page 447, step 2 - the text is wrong, only login to the Azure account
+Page 447. step 5 - the name of the share should be $ShareName.
+
+
+
+
 
 ### Chapter 14 - Managing Performance and Usage
 
@@ -44,10 +61,12 @@ public enum LogFileFormat
 
 Page 482 - graphic for step 2 is incorrect.
 
-page 493 - step 13. Error in getting CPU numbers
-
+Page 493 - step 13. Error in getting CPU numbers
+#          (Script updated too)
 '''powershell
 #this
 $VMReport.VMCPU = $VM.CPUUsage
 #should be
 $VMReport.VMCPU = $VM.ProcessorCount
+
+
