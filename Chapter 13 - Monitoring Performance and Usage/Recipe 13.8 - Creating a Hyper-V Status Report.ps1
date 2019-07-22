@@ -73,7 +73,7 @@ Foreach ($VM in $VMs) {
 # Add Uptime
  $VMReport.Uptime = $VM.Uptime
 # Add VM CPU
- $VMReport.VMCPU = $VM.CPUUsage
+ $VMReport.VMCPU = $VM.CPUProcessorCount
 # Replication Mode/Status
  $VMReport.ReplMode = $VM.ReplicationMode
  $VMReport.ReplState = $Vm.ReplicationState
